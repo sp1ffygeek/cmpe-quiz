@@ -99,9 +99,16 @@ function showScreen(id) {
 
 // ===== TIMER =====
 function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  if (h > 0) {
+    return h + 'h ' + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
+  }
+  if (m > 0) {
+    return m + 'm ' + String(s).padStart(2, '0') + 's';
+  }
+  return s + 's';
 }
 function startTimer() {
   state.totalStartTime = Date.now();
@@ -135,7 +142,8 @@ const COURSE_TITLES = {
 function selectCourse(course) {
   state.course = course;
   document.getElementById('mode-title').textContent = COURSE_TITLES[course];
-  document.getElementById('mode-subtitle').textContent = '100 questions available';
+  const qCount = QUESTIONS[course] ? QUESTIONS[course].length : 0;
+  document.getElementById('mode-subtitle').textContent = qCount + ' questions available';
   document.getElementById('header-title').textContent = COURSE_TITLES[course];
   showScreen('screen-mode');
 }
@@ -159,7 +167,8 @@ function startQuiz(count) {
   state.score = 0;
   state.answered = 0;
   state.answers = [];
-  const modeLabel = count >= 100 ? 'All 100' : `Quick ${count}`;
+  const total = state.questions.length;
+  const modeLabel = count >= allQ.length ? `All ${total}` : `Quick ${total}`;
   document.getElementById('header-title').textContent = `${COURSE_TITLES[state.course]} · ${modeLabel}`;
   showScreen('screen-quiz');
   startTimer();
