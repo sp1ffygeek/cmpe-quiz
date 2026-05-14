@@ -1,0 +1,48 @@
+{
+  "title": "CMPE Exam Prep",
+  "subtitle": "Select a course to start practicing",
+  "enableBackButton": true,
+  "showFormulas": true,
+  "courses": [
+    {
+      "id": "cmpe260",
+      "code": "CMPE 260",
+      "name": "Reinforcement Learning",
+      "description": "Modules 9–17 · TRPO, PPO, DDPG, SAC, A3C & more",
+      "questionFile": "data/cmpe260.json",
+      "formulaFile": "data/formulas-cmpe260.json",
+      "studyGuides": [
+        { "id": "all", "file": "guides/cmpe260/overview.md", "label": "📋 All Modules (Overview)" },
+        { "id": "m09", "file": "guides/cmpe260/m09-policy-gradient.md", "label": "M09 · Policy Gradient" },
+        { "id": "m10", "file": "guides/cmpe260/m10-trpo-ppo-acktr.md", "label": "M10 · TRPO, PPO, ACKTR" },
+        { "id": "m11", "file": "guides/cmpe260/m11-ddpg-td3-sac.md", "label": "M11 · DDPG, TD3, SAC" },
+        { "id": "m12", "file": "guides/cmpe260/m12-a2c-a3c.md", "label": "M12 · A2C / A3C" },
+        { "id": "m13", "file": "guides/cmpe260/m13-bc-her-gail.md", "label": "M13 · BC, HER, GAIL" },
+        { "id": "m15", "file": "guides/cmpe260/m15-mbrl-offline.md", "label": "M15-17 · MBRL & Offline RL" }
+      ]
+    },
+    {
+      "id": "cmpe256",
+      "code": "CMPE 256",
+      "name": "Recommender Systems",
+      "description": "CF, MF, Deep Learning, Fairness, Bandits & more",
+      "questionFile": "data/cmpe256.json",
+      "formulaFile": "data/formulas-cmpe256.json",
+      "studyGuides": [
+        { "id": "all", "file": "guides/cmpe256/overview.md", "label": "📋 All Modules (Overview)" },
+        { "id": "m1", "file": "guides/cmpe256/m1-similarity-evaluation.md", "label": "M1 · Similarity & Evaluation" },
+        { "id": "m2", "file": "guides/cmpe256/m2-content-cf.md", "label": "M2 · Content-Based & CF" },
+        { "id": "m3", "file": "guides/cmpe256/m3-matrix-factorization.md", "label": "M3 · Matrix Factorization" },
+        { "id": "m4", "file": "guides/cmpe256/m4-neural-cf-bandits.md", "label": "M4 · Neural CF & Bandits" },
+        { "id": "m5", "file": "guides/cmpe256/m5-graphs-pagerank.md", "label": "M5 · Graphs, SNA, PageRank" },
+        { "id": "m6", "file": "guides/cmpe256/m6-communities-fairness.md", "label": "M6 · Communities & Fairness" }
+      ]
+    }
+  ],
+  "quizPresets": [
+    { "count": 10, "icon": "🎯", "label": "Quick 10" },
+    { "count": 25, "icon": "⚡", "label": "Quick 25" },
+    { "count": 50, "icon": "🔥", "label": "Quick 50" },
+    { "count": 100, "icon": "💪", "label": "100 Questions" }
+  ]
+}

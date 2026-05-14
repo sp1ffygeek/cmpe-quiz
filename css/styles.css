@@ -218,6 +218,46 @@ body {
   text-decoration: underline;
 }
 
+/* Custom random count input */
+.custom-random {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+}
+.custom-random label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.custom-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  max-width: 100px;
+  -moz-appearance: textfield;
+}
+.custom-input::-webkit-outer-spin-button,
+.custom-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-input:focus { outline: none; border-color: var(--accent); }
+.custom-go {
+  padding: 10px 20px !important;
+  margin-bottom: 0 !important;
+  width: auto !important;
+  flex-shrink: 0;
+}
+
 /* Question */
 .q-tier {
   display: inline-block;

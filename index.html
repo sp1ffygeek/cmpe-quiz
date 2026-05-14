@@ -26,7 +26,7 @@ window.MathJax = {
 <div class="container">
   <!-- Header -->
   <div class="header">
-    <h1 id="header-title">📝 CMPE Exam Prep</h1>
+    <h1 id="header-title">📝 Loading…</h1>
     <div class="header-right">
       <div class="timer-display" id="timer-display" style="display:none">
         <span id="total-timer">00:00</span>
@@ -36,32 +36,21 @@ window.MathJax = {
     </div>
   </div>
 
-  <!-- Screen 1: Course Selection -->
+  <!-- Screen 1: Course Selection (rendered dynamically from config) -->
   <div id="screen-course" class="screen active">
     <div class="card course-select fade-in">
-      <h2>Choose Your Course</h2>
-      <p>Select a course to start practicing</p>
-      <button class="course-btn" onclick="selectCourse('cmpe260')">
-        <span class="course-code">CMPE 260</span> — Reinforcement Learning
-        <span class="course-desc">200 questions · Modules 9–17 · TRPO, PPO, DDPG, SAC, A3C & more</span>
-      </button>
-      <button class="course-btn" onclick="selectCourse('cmpe256')">
-        <span class="course-code">CMPE 256</span> — Recommender Systems
-        <span class="course-desc">200 questions · CF, MF, Deep Learning, Fairness, Bandits & more</span>
-      </button>
+      <h2></h2>
+      <p></p>
+      <div id="course-list"></div>
     </div>
   </div>
 
-  <!-- Screen 2: Mode Selection -->
+  <!-- Screen 2: Mode Selection (rendered dynamically) -->
   <div id="screen-mode" class="screen">
     <div class="card mode-select fade-in">
       <h2 id="mode-title"></h2>
       <p class="subtitle" id="mode-subtitle"></p>
-      <button class="mode-btn secondary" onclick="startQuiz(10)">🎯 Quick 10 (Random)</button>
-      <button class="mode-btn secondary" onclick="startQuiz(25)">⚡ Quick 25 (Random)</button>
-      <button class="mode-btn secondary" onclick="startQuiz(50)">🔥 Quick 50 (Random)</button>
-      <button class="mode-btn secondary" onclick="startQuiz(100)">💪 100 Questions (Random)</button>
-      <button class="mode-btn" onclick="startQuiz(200)">📋 All 200 Questions (Shuffled)</button>
+      <div id="mode-buttons"></div>
       <button class="mode-btn secondary" onclick="openStudyGuide()" style="margin-top:8px;border-color:var(--accent);color:var(--accent)">📖 Study Guide</button>
       <button class="back-link" onclick="showScreen('screen-course')">← Back to course selection</button>
     </div>
@@ -75,7 +64,7 @@ window.MathJax = {
     <div class="progress-text">
       <span id="progress-label">Question 1 of 100</span>
       <span id="score-label">Score: 0/0</span>
-      <button class="formula-btn" onclick="openFormulaSheet()" title="Open formula sheet">📐</button>
+      <button class="formula-btn" id="formula-btn" onclick="openFormulaSheet()" title="Open formula sheet">📐</button>
       <button class="exit-btn" onclick="exitQuiz()" title="Exit quiz and view results">✕ Exit</button>
     </div>
     <div class="card fade-in" id="question-card">

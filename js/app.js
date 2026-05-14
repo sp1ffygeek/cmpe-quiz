@@ -1,49 +1,87 @@
-// ===== QUESTION DATA =====
+// ===== CONFIG-DRIVEN QUIZ APP =====
+let CONFIG = {};
 let QUESTIONS = {};
 let FORMULAS = {};
 
-const QUESTION_FILES = {
-  cmpe260: 'data/cmpe260.json',
-  cmpe256: 'data/cmpe256.json'
-};
-
-const FORMULA_FILES = {
-  cmpe260: 'data/formulas-cmpe260.json',
-  cmpe256: 'data/formulas-cmpe256.json'
-};
-
-async function loadQuestions() {
+// ===== LOAD CONFIG =====
+async function loadConfig() {
   try {
-    const entries = Object.entries(QUESTION_FILES);
-    const results = await Promise.all(
-      entries.map(async ([key, file]) => {
-        const resp = await fetch(file);
-        if (!resp.ok) throw new Error('Failed to load ' + file);
-        return [key, await resp.json()];
-      })
-    );
-    results.forEach(([key, data]) => { QUESTIONS[key] = data; });
-    console.log('✅ Loaded', Object.keys(QUESTIONS).map(k => k + ':' + QUESTIONS[k].length).join(', '));
+    const resp = await fetch('data/config.json');
+    if (!resp.ok) throw new Error('Failed to load config.json');
+    CONFIG = await resp.json();
+    console.log('⚙️ Config loaded:', CONFIG.title);
+    renderCourseSelection();
+    await Promise.all([loadQuestions(), loadFormulas()]);
   } catch (err) {
-    console.error('Failed to load questions:', err);
+    console.error('Failed to load config:', err);
     document.getElementById('screen-course').innerHTML = `
       <div class="card" style="text-align:center;padding:40px">
-        <h2>⚠️ Failed to load questions</h2>
-        <p style="color:var(--text2);margin-top:12px">Make sure <code>data/*.json</code> files exist.<br>
+        <h2>⚠️ Failed to load configuration</h2>
+        <p style="color:var(--text2);margin-top:12px">Make sure <code>data/config.json</code> exists.<br>
         This app must be served via HTTP (not file://).</p>
         <p style="color:var(--wrong);margin-top:8px;font-size:0.85rem">${err.message}</p>
       </div>`;
   }
 }
 
+// ===== RENDER COURSE SELECTION (from config) =====
+function renderCourseSelection() {
+  document.getElementById('header-title').textContent = '📝 ' + CONFIG.title;
+
+  // Populate heading and subtitle
+  const card = document.querySelector('#screen-course .course-select');
+  const h2 = card.querySelector('h2');
+  const p = card.querySelector('p');
+  h2.textContent = 'Choose Your Course';
+  p.textContent = CONFIG.subtitle || 'Select a course to start practicing';
+
+  // Populate course buttons
+  const container = document.getElementById('course-list');
+  container.innerHTML = '';
+
+  CONFIG.courses.forEach(course => {
+    const qCount = QUESTIONS[course.id] ? QUESTIONS[course.id].length : 0;
+    const desc = qCount > 0
+      ? `${qCount} questions · ${course.description}`
+      : course.description;
+    const btn = document.createElement('button');
+    btn.className = 'course-btn';
+    btn.onclick = () => selectCourse(course.id);
+    btn.innerHTML = `
+      <span class="course-code">${course.code}</span> — ${course.name}
+      <span class="course-desc">${desc}</span>
+    `;
+    container.appendChild(btn);
+  });
+}
+
+// ===== LOAD QUESTIONS =====
+async function loadQuestions() {
+  try {
+    const results = await Promise.all(
+      CONFIG.courses.map(async (course) => {
+        const resp = await fetch(course.questionFile);
+        if (!resp.ok) throw new Error('Failed to load ' + course.questionFile);
+        return [course.id, await resp.json()];
+      })
+    );
+    results.forEach(([key, data]) => { QUESTIONS[key] = data; });
+    console.log('✅ Loaded', Object.keys(QUESTIONS).map(k => k + ':' + QUESTIONS[k].length).join(', '));
+    // Re-render course selection with question counts
+    renderCourseSelection();
+  } catch (err) {
+    console.error('Failed to load questions:', err);
+  }
+}
+
+// ===== LOAD FORMULAS =====
 async function loadFormulas() {
   try {
-    const entries = Object.entries(FORMULA_FILES);
     const results = await Promise.all(
-      entries.map(async ([key, file]) => {
-        const resp = await fetch(file);
-        if (!resp.ok) throw new Error('Failed to load ' + file);
-        return [key, await resp.json()];
+      CONFIG.courses.filter(c => c.formulaFile).map(async (course) => {
+        const resp = await fetch(course.formulaFile);
+        if (!resp.ok) throw new Error('Failed to load ' + course.formulaFile);
+        return [course.id, await resp.json()];
       })
     );
     results.forEach(([key, data]) => { FORMULAS[key] = data; });
@@ -60,7 +98,7 @@ let state = {
   currentIndex: 0,
   score: 0,
   answered: 0,
-  answers: [], // {qIndex, selected, correct, isCorrect, timeSpent}
+  answers: [],
   theme: localStorage.getItem('quiz-theme') || 'light',
   totalStartTime: null,
   questionStartTime: null,
@@ -68,19 +106,24 @@ let state = {
   totalElapsed: 0
 };
 
+// ===== HELPERS =====
+function getCourseConfig(courseId) {
+  return CONFIG.courses.find(c => c.id === courseId);
+}
+
+function getCourseTitle(courseId) {
+  const c = getCourseConfig(courseId);
+  return c ? `${c.code} — ${c.name}` : courseId;
+}
+
 // ===== THEME =====
 function initTheme() {
-  // Check system preference if no saved preference
   if (!localStorage.getItem('quiz-theme')) {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       state.theme = 'dark';
     }
   }
-  if (state.theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.querySelector('.theme-toggle').textContent = '☀️';
-  }
-  // Listen for system theme changes
+  applyTheme();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
     if (!localStorage.getItem('quiz-theme')) {
       state.theme = e.matches ? 'dark' : 'light';
@@ -100,13 +143,7 @@ function applyTheme() {
 function toggleTheme() {
   state.theme = state.theme === 'light' ? 'dark' : 'light';
   localStorage.setItem('quiz-theme', state.theme);
-  if (state.theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.querySelector('.theme-toggle').textContent = '☀️';
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-    document.querySelector('.theme-toggle').textContent = '🌙';
-  }
+  applyTheme();
 }
 
 // ===== NAVIGATION =====
@@ -114,7 +151,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-course') {
-    document.getElementById('header-title').textContent = '📝 CMPE Exam Prep';
+    document.getElementById('header-title').textContent = '📝 ' + (CONFIG.title || 'CMPE Exam Prep');
     document.getElementById('timer-display').style.display = 'none';
     if (state.timerInterval) clearInterval(state.timerInterval);
   }
@@ -125,12 +162,8 @@ function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (h > 0) {
-    return h + 'h ' + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
-  }
-  if (m > 0) {
-    return m + 'm ' + String(s).padStart(2, '0') + 's';
-  }
+  if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
+  if (m > 0) return m + 'm ' + String(s).padStart(2, '0') + 's';
   return s + 's';
 }
 function startTimer() {
@@ -150,33 +183,61 @@ function stopTimer() {
   state.totalElapsed = Math.floor((Date.now() - state.totalStartTime) / 1000);
   document.getElementById('timer-display').style.display = 'none';
 }
-function resetQuestionTimer() {
-  state.questionStartTime = Date.now();
-}
-function getQuestionTime() {
-  return Math.floor((Date.now() - state.questionStartTime) / 1000);
-}
+function resetQuestionTimer() { state.questionStartTime = Date.now(); }
+function getQuestionTime() { return Math.floor((Date.now() - state.questionStartTime) / 1000); }
 
 // ===== COURSE SELECTION =====
-const COURSE_TITLES = {
-  cmpe260: 'CMPE 260 — Reinforcement Learning',
-  cmpe256: 'CMPE 256 — Recommender Systems'
-};
-function selectCourse(course) {
-  state.course = course;
-  document.getElementById('mode-title').textContent = COURSE_TITLES[course];
-  const qCount = QUESTIONS[course] ? QUESTIONS[course].length : 0;
+function selectCourse(courseId) {
+  state.course = courseId;
+  const courseTitle = getCourseTitle(courseId);
+  document.getElementById('mode-title').textContent = courseTitle;
+  const qCount = QUESTIONS[courseId] ? QUESTIONS[courseId].length : 0;
   document.getElementById('mode-subtitle').textContent = qCount + ' questions available';
-  document.getElementById('header-title').textContent = COURSE_TITLES[course];
+  document.getElementById('header-title').textContent = courseTitle;
+
+  // Dynamically generate mode buttons from config presets
+  // Only show presets that are strictly less than total question count
+  const container = document.getElementById('mode-buttons');
+  container.innerHTML = '';
+  const presets = CONFIG.quizPresets || [];
+  const shownPresets = presets.filter(p => p.count < qCount);
+  shownPresets.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn secondary';
+    btn.textContent = `${preset.icon} ${preset.label} (Random)`;
+    btn.onclick = () => startQuiz(preset.count);
+    container.appendChild(btn);
+  });
+  // "All" button — always shown
+  const allBtn = document.createElement('button');
+  allBtn.className = 'mode-btn';
+  allBtn.textContent = `📋 All ${qCount} Questions (Shuffled)`;
+  allBtn.onclick = () => startQuiz(qCount);
+  container.appendChild(allBtn);
+  // "Custom Random" input — only if there are enough questions to make it useful
+  if (qCount > 10) {
+    const defaultCustom = Math.min(30, Math.floor(qCount / 2));
+    const customDiv = document.createElement('div');
+    customDiv.className = 'custom-random';
+    customDiv.innerHTML = `
+      <label for="custom-count">🎲 Custom:</label>
+      <input type="number" id="custom-count" min="1" max="${qCount}" value="${defaultCustom}" class="custom-input">
+      <button class="mode-btn secondary custom-go" onclick="startQuiz(Math.min(parseInt(document.getElementById('custom-count').value)||10, ${qCount}))">Go</button>
+    `;
+    container.appendChild(customDiv);
+  }
+
   showScreen('screen-mode');
 }
 
-// ===== SHUFFLE =====
+// ===== SHUFFLE (3-pass Fisher-Yates for thorough randomization) =====
 function shuffle(arr) {
   const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
   }
   return a;
 }
@@ -184,6 +245,7 @@ function shuffle(arr) {
 // ===== START QUIZ =====
 function startQuiz(count) {
   const allQ = QUESTIONS[state.course];
+  if (!allQ || allQ.length === 0) return;
   const shuffled = shuffle(allQ);
   state.questions = shuffled.slice(0, Math.min(count, shuffled.length));
   state.currentIndex = 0;
@@ -192,7 +254,16 @@ function startQuiz(count) {
   state.answers = [];
   const total = state.questions.length;
   const modeLabel = count >= allQ.length ? `All ${total}` : `Quick ${total}`;
-  document.getElementById('header-title').textContent = `${COURSE_TITLES[state.course]} · ${modeLabel}`;
+  document.getElementById('header-title').textContent = `${getCourseTitle(state.course)} · ${modeLabel}`;
+
+  // Show/hide formula button based on config flag + formula data availability
+  const formulaBtn = document.getElementById('formula-btn');
+  if (formulaBtn) {
+    const showFormulas = CONFIG.showFormulas !== false; // default true
+    const hasFormulas = FORMULAS[state.course] && FORMULAS[state.course].length > 0;
+    formulaBtn.style.display = (showFormulas && hasFormulas) ? 'inline-block' : 'none';
+  }
+
   showScreen('screen-quiz');
   startTimer();
   renderQuestion();
@@ -203,8 +274,6 @@ function renderQuestion() {
   const q = state.questions[state.currentIndex];
   const total = state.questions.length;
   const idx = state.currentIndex;
-
-  // Check if this question was already answered
   const prevAnswer = state.answers.find(a => a.qIndex === idx);
 
   // Progress
@@ -212,15 +281,20 @@ function renderQuestion() {
   document.getElementById('progress-label').textContent = `Question ${idx + 1} of ${total}`;
   document.getElementById('score-label').textContent = `Score: ${state.score}/${state.answered}`;
 
-  // Previous button visibility
+  // Previous button visibility (controlled by config.enableBackButton)
   const prevBtn = document.getElementById('prev-btn');
-  prevBtn.style.display = 'inline-block';
-  if (idx > 0) {
-    prevBtn.style.opacity = '1';
-    prevBtn.style.pointerEvents = 'auto';
+  const backEnabled = CONFIG.enableBackButton !== false; // default true
+  if (backEnabled) {
+    prevBtn.style.display = 'inline-block';
+    if (idx > 0) {
+      prevBtn.style.opacity = '1';
+      prevBtn.style.pointerEvents = 'auto';
+    } else {
+      prevBtn.style.opacity = '0.3';
+      prevBtn.style.pointerEvents = 'none';
+    }
   } else {
-    prevBtn.style.opacity = '0.3';
-    prevBtn.style.pointerEvents = 'none';
+    prevBtn.style.display = 'none';
   }
 
   // Question
@@ -238,7 +312,6 @@ function renderQuestion() {
     btn.dataset.letter = letter;
 
     if (prevAnswer) {
-      // Already answered — show in review mode
       btn.classList.add('disabled');
       btn.onclick = null;
       if (letter === prevAnswer.correct) btn.classList.add('correct');
@@ -253,7 +326,6 @@ function renderQuestion() {
   const fb = document.getElementById('feedback');
   const nextBtn = document.getElementById('next-btn');
   if (prevAnswer) {
-    // Show feedback for previously answered question
     fb.style.display = 'block';
     if (prevAnswer.isCorrect) {
       fb.className = 'feedback correct-fb';
@@ -263,34 +335,19 @@ function renderQuestion() {
       document.getElementById('fb-title').textContent = `❌ Wrong — Correct answer is ${prevAnswer.correct}`;
     }
     document.getElementById('fb-explanation').innerHTML = q.explanation.replace(/\n/g, '<br>');
-    // Show next button
-    if (idx < total - 1) {
-      nextBtn.textContent = 'Next Question →';
-      nextBtn.style.display = 'block';
-    } else {
-      nextBtn.textContent = 'View Results →';
-      nextBtn.style.display = 'block';
-    }
+    nextBtn.textContent = idx < total - 1 ? 'Next Question →' : 'View Results →';
+    nextBtn.style.display = 'block';
   } else {
     fb.style.display = 'none';
     fb.className = 'feedback';
     nextBtn.style.display = 'none';
   }
 
-  // Re-render MathJax
   typesetMath();
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 function typesetMath() {
   if (window.MathJax && MathJax.typesetPromise) {
-    // Clear MathJax's internal cache of processed elements so re-inserted
-    // content (feedback, review list, study guide) gets re-typeset correctly.
     if (MathJax.startup && MathJax.startup.document) {
       MathJax.startup.document.clear();
       MathJax.startup.document.updateDocument();
@@ -318,7 +375,6 @@ function selectAnswer(selected) {
     timeSpent
   });
 
-  // Disable all options
   const btns = document.querySelectorAll('.option-btn');
   btns.forEach(btn => {
     btn.classList.add('disabled');
@@ -328,7 +384,6 @@ function selectAnswer(selected) {
     if (letter === selected && !isCorrect) btn.classList.add('wrong');
   });
 
-  // Show feedback
   const fb = document.getElementById('feedback');
   fb.style.display = 'block';
   if (isCorrect) {
@@ -339,17 +394,10 @@ function selectAnswer(selected) {
     document.getElementById('fb-title').textContent = `❌ Wrong — Correct answer is ${correct}`;
   }
   document.getElementById('fb-explanation').innerHTML = q.explanation.replace(/\n/g, '<br>');
-
-  // Update score display
   document.getElementById('score-label').textContent = `Score: ${state.score}/${state.answered}`;
 
-  // Show next button
   const nextBtn = document.getElementById('next-btn');
-  if (state.currentIndex < state.questions.length - 1) {
-    nextBtn.textContent = 'Next Question →';
-  } else {
-    nextBtn.textContent = 'View Results →';
-  }
+  nextBtn.textContent = state.currentIndex < state.questions.length - 1 ? 'Next Question →' : 'View Results →';
   nextBtn.style.display = 'block';
 
   typesetMath();
@@ -391,7 +439,7 @@ function showSummary() {
   bar.style.background = pct >= 70 ? 'var(--correct)' : pct >= 50 ? '#ff9f0a' : 'var(--wrong)';
   setTimeout(() => { bar.style.width = pct + '%'; }, 100);
 
-  document.getElementById('header-title').textContent = `${COURSE_TITLES[state.course]} · Results`;
+  document.getElementById('header-title').textContent = `${getCourseTitle(state.course)} · Results`;
   renderReviewList('all');
 }
 
@@ -399,7 +447,7 @@ function renderReviewList(filter) {
   const list = document.getElementById('review-list');
   list.innerHTML = '';
 
-  state.answers.forEach((a, i) => {
+  state.answers.forEach((a) => {
     if (filter === 'wrong' && a.isCorrect) return;
     if (filter === 'correct' && !a.isCorrect) return;
 
@@ -437,7 +485,6 @@ function filterReview(filter, btn) {
 // ===== EXIT QUIZ =====
 function exitQuiz() {
   if (state.answered === 0) {
-    // No questions answered, just go back to mode selection
     stopTimer();
     showScreen('screen-mode');
     return;
@@ -452,34 +499,13 @@ function restartQuiz() {
   startQuiz(state.questions.length);
 }
 
-// ===== STUDY GUIDE =====
-const STUDY_GUIDE_MODULES = {
-  cmpe260: [
-    { id: 'all', file: 'guides/cmpe260/overview.md', label: '📋 All Modules (Overview)' },
-    { id: 'm09', file: 'guides/cmpe260/m09-policy-gradient.md', label: 'M09 · Policy Gradient' },
-    { id: 'm10', file: 'guides/cmpe260/m10-trpo-ppo-acktr.md', label: 'M10 · TRPO, PPO, ACKTR' },
-    { id: 'm11', file: 'guides/cmpe260/m11-ddpg-td3-sac.md', label: 'M11 · DDPG, TD3, SAC' },
-    { id: 'm12', file: 'guides/cmpe260/m12-a2c-a3c.md', label: 'M12 · A2C / A3C' },
-    { id: 'm13', file: 'guides/cmpe260/m13-bc-her-gail.md', label: 'M13 · BC, HER, GAIL' },
-    { id: 'm15', file: 'guides/cmpe260/m15-mbrl-offline.md', label: 'M15-17 · MBRL & Offline RL' },
-  ],
-  cmpe256: [
-    { id: 'all', file: 'guides/cmpe256/overview.md', label: '📋 All Modules (Overview)' },
-    { id: 'm1', file: 'guides/cmpe256/m1-similarity-evaluation.md', label: 'M1 · Similarity & Evaluation' },
-    { id: 'm2', file: 'guides/cmpe256/m2-content-cf.md', label: 'M2 · Content-Based & CF' },
-    { id: 'm3', file: 'guides/cmpe256/m3-matrix-factorization.md', label: 'M3 · Matrix Factorization' },
-    { id: 'm4', file: 'guides/cmpe256/m4-neural-cf-bandits.md', label: 'M4 · Neural CF & Bandits' },
-    { id: 'm5', file: 'guides/cmpe256/m5-graphs-pagerank.md', label: 'M5 · Graphs, SNA, PageRank' },
-    { id: 'm6', file: 'guides/cmpe256/m6-communities-fairness.md', label: 'M6 · Communities & Fairness' },
-  ]
-};
-
+// ===== STUDY GUIDE (config-driven) =====
 function openStudyGuide() {
-  const modules = STUDY_GUIDE_MODULES[state.course];
-  if (!modules) return;
+  const courseConfig = getCourseConfig(state.course);
+  if (!courseConfig || !courseConfig.studyGuides) return;
+  const modules = courseConfig.studyGuides;
   const el = document.getElementById('sg-content');
-  // Show module picker
-  let html = '<h2>📖 Study Guide — ' + COURSE_TITLES[state.course] + '</h2>';
+  let html = '<h2>📖 Study Guide — ' + getCourseTitle(state.course) + '</h2>';
   html += '<p style="color:var(--text2);margin-bottom:16px">Select a module to review:</p>';
   html += '<div style="display:flex;flex-direction:column;gap:8px">';
   modules.forEach(m => {
@@ -496,29 +522,17 @@ function openStudyGuide() {
 }
 
 function renderMarkdown(md) {
-  // Protect LaTeX blocks from marked.js processing:
-  // 1. Extract $$...$$ (display) and $...$ (inline) blocks
-  // 2. Replace with placeholders
-  // 3. Run marked
-  // 4. Restore LaTeX blocks
   const latexBlocks = [];
-  // Protect display math $$...$$
   md = md.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
     latexBlocks.push(match);
     return `%%LATEX_BLOCK_${latexBlocks.length - 1}%%`;
   });
-  // Protect inline math $...$  (but not $$)
   md = md.replace(/\$([^\$\n]+?)\$/g, (match) => {
     latexBlocks.push(match);
     return `%%LATEX_BLOCK_${latexBlocks.length - 1}%%`;
   });
-
-  // Render markdown to HTML
   let html = marked.parse(md);
-
-  // Restore LaTeX blocks
   html = html.replace(/%%LATEX_BLOCK_(\d+)%%/g, (_, idx) => latexBlocks[parseInt(idx)]);
-
   return html;
 }
 
@@ -529,14 +543,12 @@ async function loadStudyModule(file) {
     const resp = await fetch(file);
     if (!resp.ok) throw new Error('Failed to load ' + file);
     const text = await resp.text();
-    // Render markdown or raw HTML based on file extension
     let html;
     if (file.endsWith('.md')) {
       html = renderMarkdown(text);
     } else {
       html = text;
     }
-    // Add back button
     html = '<button onclick="openStudyGuide()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.9rem;margin-bottom:12px;text-decoration:underline">← Back to module list</button>' + html;
     el.innerHTML = html;
     el.parentElement.scrollTop = 0;
@@ -596,5 +608,4 @@ document.addEventListener('keydown', e => {
 
 // ===== INIT =====
 initTheme();
-loadQuestions();
-loadFormulas();
+loadConfig();
