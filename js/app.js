@@ -195,23 +195,26 @@ function getQuestionTime() { return Math.floor((Date.now() - state.questionStart
 
 // ===== AUTO-GENERATE PRESETS =====
 // Generates smart quiz size options based on total question count
-// Rules: pick ~3-4 nice round numbers that are well-spaced and < total
+// Uses preferred "nice" numbers: 10, 25, 50, 100
+// Falls back to smaller tiers for small question banks
 function generatePresets(total) {
   if (total <= 5) return []; // too few for presets
-  const icons = ['🎯', '⚡', '🔥', '💪', '📊'];
-  const candidates = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150];
-  // Filter: must be < total AND at least 30% less than total (avoid near-duplicates of "All")
-  const threshold = Math.floor(total * 0.7);
-  const valid = candidates.filter(n => n < total && n <= threshold);
-  // Pick up to 4 well-spaced presets
+  const icons = ['🎯', '⚡', '🔥', '💪'];
+  // Preferred tiers in order of priority (most common quiz sizes)
+  const tiers = [
+    [10, 25, 50, 100],   // for 150+ questions
+    [10, 25, 50],         // for 75-149
+    [10, 25],             // for 40-74
+    [10],                 // for 15-39
+    [5],                  // for 6-14
+  ];
+  // Pick the best tier: all values must be strictly < total
   let selected = [];
-  if (valid.length <= 4) {
-    selected = valid;
-  } else {
-    // Pick evenly spaced from valid list
-    const step = (valid.length - 1) / 3;
-    for (let i = 0; i < 4; i++) {
-      selected.push(valid[Math.round(i * step)]);
+  for (const tier of tiers) {
+    const valid = tier.filter(n => n < total && n <= total * 0.7);
+    if (valid.length > 0) {
+      selected = valid;
+      break;
     }
   }
   return selected.map((n, i) => ({
