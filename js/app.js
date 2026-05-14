@@ -410,22 +410,22 @@ function restartQuiz() {
 // ===== STUDY GUIDE =====
 const STUDY_GUIDE_MODULES = {
   cmpe260: [
-    { id: 'all', file: 'guides/cmpe260/overview.html', label: '📋 All Modules (Overview)' },
-    { id: 'm09', file: 'guides/cmpe260/m09-policy-gradient.html', label: 'M09 · Policy Gradient' },
-    { id: 'm10', file: 'guides/cmpe260/m10-trpo-ppo-acktr.html', label: 'M10 · TRPO, PPO, ACKTR' },
-    { id: 'm11', file: 'guides/cmpe260/m11-ddpg-td3-sac.html', label: 'M11 · DDPG, TD3, SAC' },
-    { id: 'm12', file: 'guides/cmpe260/m12-a2c-a3c.html', label: 'M12 · A2C / A3C' },
-    { id: 'm13', file: 'guides/cmpe260/m13-bc-her-gail.html', label: 'M13 · BC, HER, GAIL' },
-    { id: 'm15', file: 'guides/cmpe260/m15-mbrl-offline.html', label: 'M15-17 · MBRL & Offline RL' },
+    { id: 'all', file: 'guides/cmpe260/overview.md', label: '📋 All Modules (Overview)' },
+    { id: 'm09', file: 'guides/cmpe260/m09-policy-gradient.md', label: 'M09 · Policy Gradient' },
+    { id: 'm10', file: 'guides/cmpe260/m10-trpo-ppo-acktr.md', label: 'M10 · TRPO, PPO, ACKTR' },
+    { id: 'm11', file: 'guides/cmpe260/m11-ddpg-td3-sac.md', label: 'M11 · DDPG, TD3, SAC' },
+    { id: 'm12', file: 'guides/cmpe260/m12-a2c-a3c.md', label: 'M12 · A2C / A3C' },
+    { id: 'm13', file: 'guides/cmpe260/m13-bc-her-gail.md', label: 'M13 · BC, HER, GAIL' },
+    { id: 'm15', file: 'guides/cmpe260/m15-mbrl-offline.md', label: 'M15-17 · MBRL & Offline RL' },
   ],
   cmpe256: [
-    { id: 'all', file: 'guides/cmpe256/overview.html', label: '📋 All Modules (Overview)' },
-    { id: 'm1', file: 'guides/cmpe256/m1-similarity-evaluation.html', label: 'M1 · Similarity & Evaluation' },
-    { id: 'm2', file: 'guides/cmpe256/m2-content-cf.html', label: 'M2 · Content-Based & CF' },
-    { id: 'm3', file: 'guides/cmpe256/m3-matrix-factorization.html', label: 'M3 · Matrix Factorization' },
-    { id: 'm4', file: 'guides/cmpe256/m4-neural-cf-bandits.html', label: 'M4 · Neural CF & Bandits' },
-    { id: 'm5', file: 'guides/cmpe256/m5-graphs-pagerank.html', label: 'M5 · Graphs, SNA, PageRank' },
-    { id: 'm6', file: 'guides/cmpe256/m6-communities-fairness.html', label: 'M6 · Communities & Fairness' },
+    { id: 'all', file: 'guides/cmpe256/overview.md', label: '📋 All Modules (Overview)' },
+    { id: 'm1', file: 'guides/cmpe256/m1-similarity-evaluation.md', label: 'M1 · Similarity & Evaluation' },
+    { id: 'm2', file: 'guides/cmpe256/m2-content-cf.md', label: 'M2 · Content-Based & CF' },
+    { id: 'm3', file: 'guides/cmpe256/m3-matrix-factorization.md', label: 'M3 · Matrix Factorization' },
+    { id: 'm4', file: 'guides/cmpe256/m4-neural-cf-bandits.md', label: 'M4 · Neural CF & Bandits' },
+    { id: 'm5', file: 'guides/cmpe256/m5-graphs-pagerank.md', label: 'M5 · Graphs, SNA, PageRank' },
+    { id: 'm6', file: 'guides/cmpe256/m6-communities-fairness.md', label: 'M6 · Communities & Fairness' },
   ]
 };
 
@@ -450,13 +450,47 @@ function openStudyGuide() {
   document.body.style.overflow = 'hidden';
 }
 
+function renderMarkdown(md) {
+  // Protect LaTeX blocks from marked.js processing:
+  // 1. Extract $$...$$ (display) and $...$ (inline) blocks
+  // 2. Replace with placeholders
+  // 3. Run marked
+  // 4. Restore LaTeX blocks
+  const latexBlocks = [];
+  // Protect display math $$...$$
+  md = md.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
+    latexBlocks.push(match);
+    return `%%LATEX_BLOCK_${latexBlocks.length - 1}%%`;
+  });
+  // Protect inline math $...$  (but not $$)
+  md = md.replace(/\$([^\$\n]+?)\$/g, (match) => {
+    latexBlocks.push(match);
+    return `%%LATEX_BLOCK_${latexBlocks.length - 1}%%`;
+  });
+
+  // Render markdown to HTML
+  let html = marked.parse(md);
+
+  // Restore LaTeX blocks
+  html = html.replace(/%%LATEX_BLOCK_(\d+)%%/g, (_, idx) => latexBlocks[parseInt(idx)]);
+
+  return html;
+}
+
 async function loadStudyModule(file) {
   const el = document.getElementById('sg-content');
   el.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text2)">Loading…</p>';
   try {
     const resp = await fetch(file);
     if (!resp.ok) throw new Error('Failed to load ' + file);
-    let html = await resp.text();
+    const text = await resp.text();
+    // Render markdown or raw HTML based on file extension
+    let html;
+    if (file.endsWith('.md')) {
+      html = renderMarkdown(text);
+    } else {
+      html = text;
+    }
     // Add back button
     html = '<button onclick="openStudyGuide()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.9rem;margin-bottom:12px;text-decoration:underline">← Back to module list</button>' + html;
     el.innerHTML = html;
