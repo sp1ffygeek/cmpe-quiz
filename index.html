@@ -118,16 +118,18 @@ window.MathJax = {
 <!-- Study Guide Modal -->
 <div class="sg-overlay" id="sg-overlay" onclick="if(event.target===this)closeStudyGuide()">
   <div class="sg-modal" id="sg-modal">
-    <button class="sg-close" onclick="closeStudyGuide()">✕</button>
+    <button class="sg-close" onclick="closeStudyGuide()" aria-label="Close study guide">✕</button>
     <div id="sg-content"></div>
+    <button class="modal-close-bottom" onclick="closeStudyGuide()">Close Study Guide</button>
   </div>
 </div>
 
 <!-- Formula Sheet Modal -->
 <div class="fs-overlay" id="fs-overlay" onclick="if(event.target===this)closeFormulaSheet()">
   <div class="fs-modal" id="fs-modal">
-    <button class="fs-close" onclick="closeFormulaSheet()">✕</button>
+    <button class="fs-close" onclick="closeFormulaSheet()" aria-label="Close formula sheet">✕</button>
     <div id="fs-content"></div>
+    <button class="modal-close-bottom" onclick="closeFormulaSheet()">Close Formula Sheet</button>
   </div>
 </div>
 

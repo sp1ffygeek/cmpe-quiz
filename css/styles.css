@@ -41,11 +41,14 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 .container {
   max-width: 720px;
   margin: 0 auto;
   padding: 20px;
+  width: 100%;
 }
 /* Header */
 .header {
@@ -444,15 +447,109 @@ body {
   border-color: var(--accent);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .container { padding: 12px; }
-  .card { padding: 18px; }
-  .course-select h2 { font-size: 1.4rem; }
-  .q-text { font-size: 1rem; }
-  .option-btn { padding: 12px 14px; font-size: 0.9rem; }
-  .summary-actions { flex-direction: column; }
-  .score-display { font-size: 2.4rem; }
+/* ===== RESPONSIVE: Tablet (≤ 768px) ===== */
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .card { padding: 22px; }
+  .header { padding: 12px 16px; margin: -16px -16px 16px -16px; }
+  .header h1 { font-size: 1.1rem; }
+  .course-select { padding: 30px 16px; }
+  .course-select h2 { font-size: 1.5rem; }
+  .course-btn { padding: 16px 20px; font-size: 1rem; }
+  .mode-btn { padding: 14px 18px; }
+  .q-text { font-size: 1.05rem; }
+  .option-btn { padding: 13px 16px; }
+  .score-display { font-size: 2.6rem; }
+  .sg-modal { padding: 24px; max-width: 95vw; }
+  .fs-modal { padding: 24px; max-width: 95vw; }
+  .q-table { font-size: 0.85rem; }
+  .q-table th, .q-table td { padding: 5px 10px; }
+}
+
+/* ===== RESPONSIVE: Phone (≤ 480px) ===== */
+@media (max-width: 480px) {
+  .container { padding: 10px; }
+  .card { padding: 16px; }
+  .header {
+    padding: 10px 12px;
+    margin: -10px -10px 12px -10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .header h1 { font-size: 0.95rem; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-right { gap: 6px; }
+  .timer-display { font-size: 0.75rem; padding: 3px 8px; }
+  .timer-display .q-timer { font-size: 0.65rem; margin-left: 4px; }
+  .theme-toggle { padding: 5px 10px; font-size: 0.95rem; }
+
+  .course-select { padding: 24px 12px; }
+  .course-select h2 { font-size: 1.3rem; }
+  .course-select p { font-size: 0.92rem; margin-bottom: 20px; }
+  .course-btn { padding: 14px 16px; font-size: 0.95rem; }
+  .course-btn .course-desc { font-size: 0.78rem; }
+
+  .mode-select h2 { font-size: 1.2rem; }
+  .mode-btn { padding: 13px 16px; font-size: 0.92rem; }
+
+  .progress-text { font-size: 0.78rem; gap: 6px; flex-wrap: wrap; }
+  .exit-btn { padding: 3px 10px; font-size: 0.75rem; }
+  .formula-btn { padding: 3px 8px; font-size: 0.82rem; }
+
+  .q-tier { font-size: 0.7rem; padding: 2px 8px; }
+  .q-number { font-size: 0.82rem; }
+  .q-text { font-size: 0.95rem; margin-bottom: 16px; }
+  .option-btn { padding: 11px 12px; font-size: 0.88rem; margin-bottom: 8px; }
+  .option-letter { width: 24px; height: 24px; line-height: 24px; font-size: 0.78rem; margin-right: 10px; }
+
+  .feedback { padding: 12px; font-size: 0.88rem; }
+  .feedback .fb-title { font-size: 0.95rem; }
+
+  .nav-buttons { gap: 8px; }
+  .prev-btn { padding: 10px 14px; font-size: 0.88rem; }
+  .next-btn { padding: 12px; font-size: 0.92rem; }
+
+  .summary h2 { font-size: 1.3rem; }
+  .score-display { font-size: 2.2rem; }
+  .score-pct { font-size: 1rem; }
+  .summary-actions { flex-direction: column; gap: 8px; }
+  .summary-actions button { padding: 12px; font-size: 0.92rem; }
+  .review-filter { gap: 6px; flex-wrap: wrap; }
+  .filter-btn { padding: 5px 12px; font-size: 0.8rem; }
+  .review-item { padding: 10px; }
+  .review-q { font-size: 0.85rem; }
+  .review-detail { font-size: 0.8rem; }
+
+  /* Modals on phone: full-screen style */
+  .sg-overlay, .fs-overlay { padding: 8px; }
+  .sg-modal, .fs-modal {
+    padding: 16px;
+    margin: 8px auto;
+    max-height: 95vh;
+    border-radius: 10px;
+  }
+  .sg-modal h2 { font-size: 1.2rem; }
+  .sg-modal h3 { font-size: 1rem; }
+  .sg-modal ul { font-size: 0.85rem; margin-left: 14px; }
+  .fs-modal h2 { font-size: 1.2rem; }
+  .fs-section h3 { font-size: 0.88rem; }
+  .fs-name { font-size: 0.78rem; min-width: auto; }
+  .fs-latex { font-size: 0.88rem; }
+
+  /* Tables scroll horizontally on small screens */
+  .q-table { font-size: 0.8rem; display: block; overflow-x: auto; white-space: nowrap; }
+  .q-table th, .q-table td { padding: 4px 8px; }
+}
+
+/* ===== RESPONSIVE: Very small phones (≤ 360px) ===== */
+@media (max-width: 360px) {
+  .container { padding: 6px; }
+  .card { padding: 12px; }
+  .header h1 { font-size: 0.85rem; max-width: 50%; }
+  .course-select h2 { font-size: 1.15rem; }
+  .q-text { font-size: 0.9rem; }
+  .option-btn { padding: 10px; font-size: 0.84rem; }
+  .option-letter { width: 22px; height: 22px; line-height: 22px; font-size: 0.72rem; margin-right: 8px; }
+  .score-display { font-size: 1.8rem; }
 }
 
 /* Nav buttons */
@@ -519,16 +616,22 @@ body {
   top: 0;
   float: right;
   background: var(--bg3);
-  border: none;
+  border: 2px solid var(--border);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   font-size: 1.3rem;
   cursor: pointer;
   color: var(--text);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.sg-close:hover { background: var(--wrong-bg); color: var(--wrong); }
+.sg-close:hover, .sg-close:active { background: var(--wrong-bg); color: var(--wrong); border-color: var(--wrong); }
 .sg-modal h2 { font-size: 1.5rem; margin-bottom: 16px; color: var(--accent); }
 .sg-modal h3 {
   font-size: 1.1rem;
@@ -613,16 +716,22 @@ body {
   top: 0;
   float: right;
   background: var(--bg3);
-  border: none;
+  border: 2px solid var(--border);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   font-size: 1.3rem;
   cursor: pointer;
   color: var(--text);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.fs-close:hover { background: var(--wrong-bg); color: var(--wrong); }
+.fs-close:hover, .fs-close:active { background: var(--wrong-bg); color: var(--wrong); border-color: var(--wrong); }
 .fs-modal h2 { font-size: 1.4rem; margin-bottom: 4px; color: var(--accent); }
 .fs-section {
   margin-bottom: 20px;
@@ -660,6 +769,30 @@ body {
   color: var(--text);
   overflow-x: auto;
 }
+
+/* Bottom close button for modals (visible on all devices, especially useful on touch) */
+.modal-close-bottom {
+  display: block;
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  background: var(--bg3);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.modal-close-bottom:hover, .modal-close-bottom:active {
+  background: var(--wrong-bg);
+  color: var(--wrong);
+  border-color: var(--wrong);
+}
+
 @media (max-width: 600px) {
   .fs-formula {
     flex-direction: column;
@@ -669,4 +802,51 @@ body {
     min-width: auto;
     font-size: 0.78rem;
   }
+}
+
+/* ===== TOUCH-FRIENDLY: Larger tap targets for mobile/tablet ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Minimum 44px tap targets per Apple HIG */
+  .option-btn { min-height: 48px; }
+  .course-btn { min-height: 56px; }
+  .mode-btn { min-height: 48px; }
+  .prev-btn, .next-btn { min-height: 44px; }
+  .exit-btn { min-height: 36px; padding: 6px 14px; }
+  .formula-btn { min-height: 36px; padding: 6px 12px; }
+  .theme-toggle { min-height: 36px; min-width: 36px; }
+  .filter-btn { min-height: 36px; padding: 8px 16px; }
+  .back-link { min-height: 44px; display: inline-flex; align-items: center; }
+  .sg-close, .fs-close {
+    width: 44px;
+    height: 44px;
+    font-size: 1.4rem;
+  }
+  /* Prevent double-tap zoom on buttons */
+  button { touch-action: manipulation; }
+}
+
+/* ===== SAFE AREA: iPhone notch / home indicator ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .container {
+    padding-left: max(env(safe-area-inset-left), 10px);
+    padding-right: max(env(safe-area-inset-right), 10px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sg-overlay, .fs-overlay {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ===== LANDSCAPE PHONE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header { padding: 8px 12px; margin-bottom: 8px; }
+  .header h1 { font-size: 0.9rem; }
+  .card { padding: 14px; margin-bottom: 12px; }
+  .course-select { padding: 16px 12px; }
+  .course-select h2 { font-size: 1.2rem; margin-bottom: 4px; }
+  .course-select p { margin-bottom: 12px; }
+  .course-btn { padding: 10px 14px; margin-bottom: 8px; }
+  .q-text { font-size: 0.95rem; margin-bottom: 12px; }
+  .option-btn { padding: 8px 12px; margin-bottom: 6px; }
+  .sg-modal, .fs-modal { max-height: 92vh; padding: 14px; margin: 4px auto; }
 }
