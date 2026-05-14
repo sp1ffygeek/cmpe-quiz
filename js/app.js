@@ -1,9 +1,15 @@
 // ===== QUESTION DATA =====
 let QUESTIONS = {};
+let FORMULAS = {};
 
 const QUESTION_FILES = {
   cmpe260: 'data/cmpe260.json',
   cmpe256: 'data/cmpe256.json'
+};
+
+const FORMULA_FILES = {
+  cmpe260: 'data/formulas-cmpe260.json',
+  cmpe256: 'data/formulas-cmpe256.json'
 };
 
 async function loadQuestions() {
@@ -27,6 +33,23 @@ async function loadQuestions() {
         This app must be served via HTTP (not file://).</p>
         <p style="color:var(--wrong);margin-top:8px;font-size:0.85rem">${err.message}</p>
       </div>`;
+  }
+}
+
+async function loadFormulas() {
+  try {
+    const entries = Object.entries(FORMULA_FILES);
+    const results = await Promise.all(
+      entries.map(async ([key, file]) => {
+        const resp = await fetch(file);
+        if (!resp.ok) throw new Error('Failed to load ' + file);
+        return [key, await resp.json()];
+      })
+    );
+    results.forEach(([key, data]) => { FORMULAS[key] = data; });
+    console.log('📐 Formulas loaded:', Object.keys(FORMULAS).join(', '));
+  } catch (err) {
+    console.warn('Formula sheets not loaded:', err.message);
   }
 }
 
@@ -528,13 +551,50 @@ function closeStudyGuide() {
   document.body.style.overflow = '';
 }
 
+// ===== FORMULA SHEET =====
+function openFormulaSheet() {
+  const formulas = FORMULAS[state.course];
+  if (!formulas || formulas.length === 0) return;
+
+  const el = document.getElementById('fs-content');
+  let html = '<h2>📐 Formula Sheet</h2>';
+  html += '<p style="color:var(--text2);margin-bottom:18px;font-size:0.9rem">Reference formulas — just like on exam day</p>';
+
+  formulas.forEach(section => {
+    html += `<div class="fs-section">`;
+    html += `<h3>${section.module}</h3>`;
+    section.formulas.forEach(f => {
+      html += `<div class="fs-formula">`;
+      html += `<span class="fs-name">${f.name}</span>`;
+      html += `<span class="fs-latex">${f.latex}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+
+  el.innerHTML = html;
+  document.getElementById('fs-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  typesetMath();
+}
+
+function closeFormulaSheet() {
+  document.getElementById('fs-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
 // Close on Escape key
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('sg-overlay').classList.contains('active')) {
-    closeStudyGuide();
+  if (e.key === 'Escape') {
+    if (document.getElementById('fs-overlay').classList.contains('active')) {
+      closeFormulaSheet();
+    } else if (document.getElementById('sg-overlay').classList.contains('active')) {
+      closeStudyGuide();
+    }
   }
 });
 
 // ===== INIT =====
 initTheme();
 loadQuestions();
+loadFormulas();

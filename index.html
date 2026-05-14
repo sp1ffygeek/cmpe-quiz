@@ -73,6 +73,7 @@ window.MathJax = {
     <div class="progress-text">
       <span id="progress-label">Question 1 of 100</span>
       <span id="score-label">Score: 0/0</span>
+      <button class="formula-btn" onclick="openFormulaSheet()" title="Open formula sheet">📐</button>
       <button class="exit-btn" onclick="exitQuiz()" title="Exit quiz and view results">✕ Exit</button>
     </div>
     <div class="card fade-in" id="question-card">
@@ -119,6 +120,14 @@ window.MathJax = {
   <div class="sg-modal" id="sg-modal">
     <button class="sg-close" onclick="closeStudyGuide()">✕</button>
     <div id="sg-content"></div>
+  </div>
+</div>
+
+<!-- Formula Sheet Modal -->
+<div class="fs-overlay" id="fs-overlay" onclick="if(event.target===this)closeFormulaSheet()">
+  <div class="fs-modal" id="fs-modal">
+    <button class="fs-close" onclick="closeFormulaSheet()">✕</button>
+    <div id="fs-content"></div>
   </div>
 </div>
 

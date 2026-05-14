@@ -1,0 +1,115 @@
+[
+  {
+    "module": "M1 — Similarity & Evaluation",
+    "formulas": [
+      {
+        "name": "Cosine Similarity",
+        "latex": "$$\\cos(\\mathbf{x},\\mathbf{y}) = \\frac{\\mathbf{x} \\cdot \\mathbf{y}}{\\lVert\\mathbf{x}\\rVert \\lVert\\mathbf{y}\\rVert}$$"
+      },
+      {
+        "name": "Jaccard Similarity",
+        "latex": "$$J(A,B) = \\frac{\\lvert A \\cap B \\rvert}{\\lvert A \\cup B \\rvert}$$"
+      },
+      {
+        "name": "Pearson Correlation",
+        "latex": "$$r = \\frac{\\sum(x_i - \\bar{x})(y_i - \\bar{y})}{\\sqrt{\\sum(x_i-\\bar{x})^2 \\sum(y_i-\\bar{y})^2}}$$"
+      },
+      {
+        "name": "Precision",
+        "latex": "$$P = \\frac{TP}{TP+FP}$$"
+      },
+      {
+        "name": "Recall",
+        "latex": "$$R = \\frac{TP}{TP+FN}$$"
+      },
+      {
+        "name": "F1 Score",
+        "latex": "$$F_1 = \\frac{2PR}{P+R}$$"
+      },
+      {
+        "name": "RMSE",
+        "latex": "$$RMSE = \\sqrt{\\frac{1}{n}\\sum(y_i - \\hat{y}_i)^2}$$"
+      },
+      {
+        "name": "Precision@k",
+        "latex": "$$P@k = \\frac{\\lvert \\text{relevant} \\cap \\text{top-k} \\rvert}{k}$$"
+      },
+      {
+        "name": "Recall@k",
+        "latex": "$$R@k = \\frac{\\lvert \\text{relevant} \\cap \\text{top-k} \\rvert}{\\lvert \\text{relevant} \\rvert}$$"
+      },
+      {
+        "name": "NDCG / DCG",
+        "latex": "$$DCG@k = \\sum_{i=1}^k \\frac{rel_i}{\\log_2(i+1)}$$"
+      }
+    ]
+  },
+  {
+    "module": "M2 — Collaborative Filtering",
+    "formulas": [
+      {
+        "name": "User-Based CF (Weighted)",
+        "latex": "$$\\hat{r}_{uj} = \\frac{\\sum_{v} sim(u,v) \\cdot r_{vj}}{\\sum_{v} \\lvert sim(u,v) \\rvert}$$"
+      },
+      {
+        "name": "Mean-Centered CF",
+        "latex": "$$\\hat{r}_{uj} = \\mu_u + \\frac{\\sum_{v} sim(u,v)(r_{vj} - \\mu_v)}{\\sum_{v} \\lvert sim(u,v) \\rvert}$$"
+      },
+      {
+        "name": "Adjusted Cosine (Item-Based)",
+        "latex": "$$sim(i,j) = \\frac{\\sum_u (r_{ui}-\\bar{r}_u)(r_{uj}-\\bar{r}_u)}{\\sqrt{\\sum_u(r_{ui}-\\bar{r}_u)^2}\\sqrt{\\sum_u(r_{uj}-\\bar{r}_u)^2}}$$"
+      }
+    ]
+  },
+  {
+    "module": "M3 — Matrix Factorization",
+    "formulas": [
+      {
+        "name": "MF Prediction",
+        "latex": "$$\\hat{r}_{ui} = q_i^T p_u$$"
+      },
+      {
+        "name": "MF with Biases",
+        "latex": "$$\\hat{r}_{ui} = \\mu + b_u + b_i + q_i^T p_u$$"
+      }
+    ]
+  },
+  {
+    "module": "M4 — Neural CF & Bandits",
+    "formulas": [
+      {
+        "name": "UCB (Upper Confidence Bound)",
+        "latex": "$$a_t = \\arg\\max_a \\left[\\hat{\\mu}_a + c\\sqrt{\\frac{\\ln t}{N_a}}\\right]$$"
+      }
+    ]
+  },
+  {
+    "module": "M5 — Graphs, SNA & PageRank",
+    "formulas": [
+      {
+        "name": "Degree Centrality",
+        "latex": "$$C_D(i) = \\frac{d(i)}{n-1}$$"
+      },
+      {
+        "name": "Closeness Centrality",
+        "latex": "$$C_C(i) = \\frac{n-1}{\\sum_j d(i,j)}$$"
+      },
+      {
+        "name": "Betweenness Centrality",
+        "latex": "$$C_B(i) = \\sum_{j<k} \\frac{g_{jk}(i)}{g_{jk}}$$"
+      },
+      {
+        "name": "Betweenness (Normalized)",
+        "latex": "$$C_B'(i) = \\frac{2 C_B(i)}{(n-1)(n-2)}$$"
+      },
+      {
+        "name": "Clustering Coefficient",
+        "latex": "$$e_v = \\frac{\\text{edges among neighbors}}{N(v)(N(v)-1)/2}$$"
+      },
+      {
+        "name": "PageRank",
+        "latex": "$$PR(p_i) = (1-d)\\frac{1}{N} + d\\sum_{p_j \\in In(p_i)} \\frac{PR(p_j)}{\\lvert Out(p_j) \\rvert}$$"
+      }
+    ]
+  }
+]

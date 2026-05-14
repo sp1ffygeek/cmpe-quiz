@@ -1,0 +1,108 @@
+[
+  {
+    "module": "M09 — Policy Gradient",
+    "formulas": [
+      {
+        "name": "Policy Gradient Theorem",
+        "latex": "$$\\nabla_\\theta J(\\theta) = \\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta(a\\mid s) \\cdot Q^\\pi(s,a)]$$"
+      },
+      {
+        "name": "Advantage Function",
+        "latex": "$$A(s,a) = Q(s,a) - V(s)$$"
+      },
+      {
+        "name": "TD Error",
+        "latex": "$$\\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$$"
+      }
+    ]
+  },
+  {
+    "module": "M10 — TRPO, PPO & ACKTR",
+    "formulas": [
+      {
+        "name": "PPO Clipped Objective",
+        "latex": "$$L^{CLIP} = \\mathbb{E}[\\min(r_t \\hat{A}_t,\\; \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon)\\hat{A}_t)]$$"
+      },
+      {
+        "name": "Probability Ratio",
+        "latex": "$$r_t(\\theta) = \\frac{\\pi_\\theta(a_t \\mid s_t)}{\\pi_{\\theta_{old}}(a_t \\mid s_t)}$$"
+      },
+      {
+        "name": "TRPO Surrogate Objective",
+        "latex": "$$L(\\theta) = \\mathbb{E}\\left[\\frac{\\pi_\\theta(a|s)}{\\pi_{\\theta_{old}}(a|s)} \\hat{A}(s,a)\\right]$$"
+      },
+      {
+        "name": "KL Constraint (TRPO)",
+        "latex": "$$\\mathbb{E}[D_{KL}(\\pi_{\\theta_{old}} \\| \\pi_\\theta)] \\leq \\delta$$"
+      },
+      {
+        "name": "GAE (Generalized Advantage Estimation)",
+        "latex": "$$\\hat{A}_t^{GAE} = \\sum_{l=0}^{\\infty} (\\gamma\\lambda)^l \\delta_{t+l}$$"
+      }
+    ]
+  },
+  {
+    "module": "M11 — DDPG, TD3 & SAC",
+    "formulas": [
+      {
+        "name": "Deterministic Policy Gradient",
+        "latex": "$$\\nabla_\\theta J(\\theta) = \\mathbb{E}[\\nabla_a Q(s,a)\\big|_{a=\\mu_\\theta(s)} \\nabla_\\theta \\mu_\\theta(s)]$$"
+      },
+      {
+        "name": "Soft Bellman Equation (SAC)",
+        "latex": "$$Q(s,a) = r + \\gamma \\mathbb{E}[V(s')] \\quad\\text{where}\\quad V(s) = \\mathbb{E}_{a \\sim \\pi}[Q(s,a) - \\alpha \\log \\pi(a|s)]$$"
+      },
+      {
+        "name": "Target Network Update",
+        "latex": "$$\\theta' \\leftarrow \\tau\\theta + (1-\\tau)\\theta'$$"
+      }
+    ]
+  },
+  {
+    "module": "M12 — A2C / A3C",
+    "formulas": [
+      {
+        "name": "Actor-Critic Loss",
+        "latex": "$$L_{actor} = -\\log \\pi_\\theta(a|s) \\cdot A(s,a)$$"
+      },
+      {
+        "name": "Critic Loss",
+        "latex": "$$L_{critic} = (R_t - V_\\phi(s_t))^2$$"
+      },
+      {
+        "name": "Entropy Bonus",
+        "latex": "$$H(\\pi) = -\\sum_a \\pi(a|s) \\log \\pi(a|s)$$"
+      },
+      {
+        "name": "n-step Return",
+        "latex": "$$R_t^{(n)} = \\sum_{k=0}^{n-1} \\gamma^k r_{t+k} + \\gamma^n V(s_{t+n})$$"
+      }
+    ]
+  },
+  {
+    "module": "M13 — BC, HER & GAIL",
+    "formulas": [
+      {
+        "name": "Behavioral Cloning Loss",
+        "latex": "$$L_{BC} = \\mathbb{E}_{(s,a) \\sim \\mathcal{D}}[-\\log \\pi_\\theta(a|s)]$$"
+      },
+      {
+        "name": "GAIL Objective",
+        "latex": "$$\\min_\\pi \\max_D \\; \\mathbb{E}_{\\pi}[\\log D(s,a)] + \\mathbb{E}_{\\pi_E}[\\log(1-D(s,a))]$$"
+      }
+    ]
+  },
+  {
+    "module": "M15–17 — MBRL & Offline RL",
+    "formulas": [
+      {
+        "name": "Dyna-Q Update",
+        "latex": "$$Q(s,a) \\leftarrow Q(s,a) + \\alpha[r + \\gamma \\max_{a'} Q(s',a') - Q(s,a)]$$"
+      },
+      {
+        "name": "CQL Penalty",
+        "latex": "$$\\min_Q \\; \\alpha \\left(\\mathbb{E}_{a \\sim \\mu}[Q(s,a)] - \\mathbb{E}_{a \\sim \\hat{\\pi}_\\beta}[Q(s,a)]\\right) + \\frac{1}{2}\\mathbb{E}_{\\mathcal{D}}[(Q - \\hat{B}^\\pi Q)^2]$$"
+      }
+    ]
+  }
+]
