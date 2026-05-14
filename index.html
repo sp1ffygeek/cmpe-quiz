@@ -439,6 +439,26 @@ body {
   .score-display { font-size: 2.4rem; }
 }
 
+/* Nav buttons */
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.prev-btn {
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.prev-btn:hover { background: var(--bg2); color: var(--text); }
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -516,7 +536,10 @@ body {
         <div class="fb-title" id="fb-title"></div>
         <div class="fb-explanation" id="fb-explanation"></div>
       </div>
-      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+      <div class="nav-buttons">
+        <button class="prev-btn" id="prev-btn" onclick="prevQuestion()">← Previous</button>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+      </div>
     </div>
   </div>
 
@@ -692,10 +715,16 @@ function renderQuestion() {
   const total = state.questions.length;
   const idx = state.currentIndex;
 
+  // Check if this question was already answered
+  const prevAnswer = state.answers.find(a => a.qIndex === idx);
+
   // Progress
   document.getElementById('progress-bar').style.width = ((idx / total) * 100) + '%';
   document.getElementById('progress-label').textContent = `Question ${idx + 1} of ${total}`;
   document.getElementById('score-label').textContent = `Score: ${state.score}/${state.answered}`;
+
+  // Previous button visibility
+  document.getElementById('prev-btn').style.display = idx > 0 ? 'inline-block' : 'none';
 
   // Question
   document.getElementById('q-tier').textContent = q.tier;
@@ -709,16 +738,47 @@ function renderQuestion() {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.innerHTML = `<div class="option-content"><span class="option-letter">${letter}</span><span class="option-text">${q.options[letter]}</span></div>`;
-    btn.onclick = () => selectAnswer(letter);
     btn.dataset.letter = letter;
+
+    if (prevAnswer) {
+      // Already answered — show in review mode
+      btn.classList.add('disabled');
+      btn.onclick = null;
+      if (letter === prevAnswer.correct) btn.classList.add('correct');
+      if (letter === prevAnswer.selected && !prevAnswer.isCorrect) btn.classList.add('wrong');
+    } else {
+      btn.onclick = () => selectAnswer(letter);
+    }
     container.appendChild(btn);
   });
 
-  // Reset feedback
+  // Feedback
   const fb = document.getElementById('feedback');
-  fb.style.display = 'none';
-  fb.className = 'feedback';
-  document.getElementById('next-btn').style.display = 'none';
+  const nextBtn = document.getElementById('next-btn');
+  if (prevAnswer) {
+    // Show feedback for previously answered question
+    fb.style.display = 'block';
+    if (prevAnswer.isCorrect) {
+      fb.className = 'feedback correct-fb';
+      document.getElementById('fb-title').textContent = '✅ Correct!';
+    } else {
+      fb.className = 'feedback wrong-fb';
+      document.getElementById('fb-title').textContent = `❌ Wrong — Correct answer is ${prevAnswer.correct}`;
+    }
+    document.getElementById('fb-explanation').innerHTML = q.explanation.replace(/\n/g, '<br>');
+    // Show next button
+    if (idx < total - 1) {
+      nextBtn.textContent = 'Next Question →';
+      nextBtn.style.display = 'block';
+    } else {
+      nextBtn.textContent = 'View Results →';
+      nextBtn.style.display = 'block';
+    }
+  } else {
+    fb.style.display = 'none';
+    fb.className = 'feedback';
+    nextBtn.style.display = 'none';
+  }
 
   // Re-render MathJax
   typesetMath();
@@ -790,6 +850,15 @@ function selectAnswer(selected) {
   nextBtn.style.display = 'block';
 
   typesetMath();
+}
+
+// ===== PREVIOUS QUESTION =====
+function prevQuestion() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 // ===== NEXT QUESTION =====
