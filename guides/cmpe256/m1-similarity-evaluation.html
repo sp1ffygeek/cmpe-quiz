@@ -1,0 +1,55 @@
+<h2>📖 M1: Similarity & Evaluation</h2>
+<h3>Similarity Metrics</h3>
+<table class="q-table">
+<tr><th>Metric</th><th>Formula</th><th>Use Case</th></tr>
+<tr><td><b>Cosine</b></td><td>$$\cos(\mathbf{x},\mathbf{y}) = \frac{\mathbf{x} \cdot \mathbf{y}}{\|\mathbf{x}\| \|\mathbf{y}\|}$$</td><td>Measures angle between vectors; ignores magnitude. Range [−1, 1] for real, [0, 1] for non-negative.</td></tr>
+<tr><td><b>Jaccard</b></td><td>$$J(A,B) = \frac{\lvert A \cap B \rvert}{\lvert A \cup B \rvert}$$</td><td>Set overlap; good for binary/implicit feedback. Range [0, 1].</td></tr>
+<tr><td><b>Pearson</b></td><td>$$r = \frac{\sum(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum(x_i-\bar{x})^2 \sum(y_i-\bar{y})^2}}$$</td><td>Linear correlation; handles rating-scale bias (mean-centers automatically). Range [−1, 1].</td></tr>
+</table>
+<h3>Scaling & Normalization</h3>
+<ul>
+<li><b>Mean centering</b>: $$x'_i = x_i - \bar{x}$$ — removes user/item bias; critical for adjusted cosine in item-based CF.</li>
+<li><b>Min-max normalization</b>: $$x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}$$ — scales to [0, 1]; sensitive to outliers.</li>
+<li><b>Why important?</b> Content-based & item-based CF compare across users with different rating scales; normalization ensures fair comparison.</li>
+</ul>
+<h3>Evaluation Basics</h3>
+<ul>
+<li><b>Training set</b>: learn model parameters. <b>Validation set</b>: tune hyperparameters. <b>Test set</b>: final unbiased estimate.</li>
+<li><b>Overfitting</b>: low training error, high test error (model memorizes noise). <b>Underfitting</b>: high error on both (model too simple).</li>
+<li><b>Generalization</b>: ability to perform well on unseen data.</li>
+</ul>
+<h3>Classification Metrics (Confusion Matrix)</h3>
+<table class="q-table">
+<tr><th></th><th>Predicted +</th><th>Predicted −</th></tr>
+<tr><td><b>Actual +</b></td><td>TP</td><td>FN</td></tr>
+<tr><td><b>Actual −</b></td><td>FP</td><td>TN</td></tr>
+</table>
+<ul>
+<li>$$\text{Accuracy} = \frac{TP+TN}{TP+TN+FP+FN}$$ — misleading with imbalanced classes</li>
+<li>$$\text{Precision} = \frac{TP}{TP+FP}$$ — "of predicted positives, how many correct?"</li>
+<li>$$\text{Recall (Sensitivity)} = \frac{TP}{TP+FN}$$ — "of actual positives, how many found?"</li>
+<li>$$\text{Specificity} = \frac{TN}{TN+FP}$$ — true negative rate</li>
+<li>$$F_1 = \frac{2 \cdot P \cdot R}{P + R}$$ — harmonic mean; use when both P and R matter</li>
+<li><b>ROC curve</b>: TPR vs FPR at varying thresholds. <b>AUC</b>: area under ROC; 1.0 = perfect, 0.5 = random.</li>
+</ul>
+<h3>RecSys Evaluation Metrics</h3>
+<ul>
+<li>$$RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$ — penalizes large errors more</li>
+<li>$$MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|$$ — treats all errors equally</li>
+<li><b>Problems with RMSE/MAE</b>: don't reflect ranking quality; a system can have low RMSE but poor top-k recommendations.</li>
+<li><b>Top-k metrics</b>: Hit Rate, $$\text{Precision@k} = \frac{|\text{relevant} \cap \text{top-k}|}{k}$$, $$\text{Recall@k} = \frac{|\text{relevant} \cap \text{top-k}|}{|\text{relevant}|}$$</li>
+<li><b>NDCG</b> (Normalized Discounted Cumulative Gain): rewards relevant items appearing higher in the ranked list.</li>
+</ul>
+<h3>Evaluation Methods</h3>
+<table class="q-table">
+<tr><th>Method</th><th>Pros</th><th>Cons</th><th>When to Use</th></tr>
+<tr><td><b>Holdout</b></td><td>Simple, fast</td><td>High variance, wastes data</td><td>Large datasets</td></tr>
+<tr><td><b>Multiple random sampling</b></td><td>Reduces variance</td><td>Still wastes some data</td><td>Medium datasets</td></tr>
+<tr><td><b>k-fold Cross-validation</b></td><td>Uses all data, low variance</td><td>Computationally expensive</td><td>Small–medium datasets</td></tr>
+</table>
+<h3>RecSys Evaluation Approaches</h3>
+<ul>
+<li><b>Offline evaluation</b>: Use historical data; fast, reproducible, but can't measure novelty/serendipity.</li>
+<li><b>User studies</b>: Rich qualitative feedback; expensive, small scale, potential bias.</li>
+<li><b>A/B testing</b>: Real user behavior; requires live traffic, slow, ethical concerns. Bandits improve A/B by dynamically allocating traffic.</li>
+</ul>

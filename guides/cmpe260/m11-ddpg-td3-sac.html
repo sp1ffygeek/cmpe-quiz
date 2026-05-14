@@ -1,0 +1,53 @@
+<h2>📖 M11: DDPG, TD3 & SAC</h2>
+<h3>DQN Recap</h3>
+<ul>
+<li><b>Replay buffer</b>: stores $$(s, a, r, s')$$ transitions; mini-batch sampling breaks temporal correlation.</li>
+<li><b>Target network</b>: frozen copy of Q-network updated periodically → stable Bellman targets.</li>
+<li>DQN limitation: discrete actions only (argmax over Q).</li>
+</ul>
+<h3>Deep Deterministic Policy Gradient (DDPG)</h3>
+<p><b>Idea:</b> Actor-critic for <b>continuous actions</b> using DQN tricks (replay buffer + target networks).</p>
+<ul>
+<li><b>Actor</b> $$\mu_\theta(s)$$: deterministic policy mapping states → actions.</li>
+<li><b>Critic</b> $$Q_\phi(s,a)$$: estimates action-value function.</li>
+<li><b>Target</b>: $$y_t = r_t + \gamma Q_{\phi'}(s', \mu_{\theta'}(s'))$$</li>
+<li><b>Soft (Polyak) update</b>: $$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$$, with $$\tau \ll 1$$ (e.g., 0.005).</li>
+<li><b>Exploration</b>: Ornstein-Uhlenbeck (OU) noise — temporally correlated, suited for physical control. Alternative: Gaussian noise.</li>
+<li><b>Actor gradient</b> (deterministic policy gradient theorem): $$\nabla_\theta J \approx \frac{1}{N}\sum \nabla_a Q_\phi(s,a)\big|_{a=\mu_\theta(s)} \nabla_\theta \mu_\theta(s)$$</li>
+<li><b>Off-policy</b>: learns from replay buffer data collected by older policies.</li>
+<li><b>Batch normalization</b> used to handle different observation scales.</li>
+</ul>
+<h3>Twin Delayed DDPG (TD3)</h3>
+<p>Builds on DDPG with <b>three modifications</b> to combat overestimation bias:</p>
+<table class="q-table">
+<tr><th>Modification</th><th>What</th><th>Why</th></tr>
+<tr><td><b>Clipped Double Q</b> ("Twin")</td><td>Two critics; target uses $$\min(Q_1', Q_2')$$</td><td>Reduces overestimation bias</td></tr>
+<tr><td><b>Delayed Policy Updates</b> ("Delayed")</td><td>Update actor every $$d$$ critic updates (typically $$d=2$$)</td><td>Let critic stabilize before policy uses it</td></tr>
+<tr><td><b>Target Policy Smoothing</b></td><td>$$\tilde{a} = \mu_{\theta'}(s') + \text{clip}(\epsilon, -c, c)$$, $$\epsilon \sim \mathcal{N}(0, \sigma)$$</td><td>Prevents exploiting Q-function peaks</td></tr>
+</table>
+<ul>
+<li><b>TD3 target</b>: $$y = r + \gamma \min_{i=1,2} Q_{\phi_i'}(s', \tilde{a})$$</li>
+<li>Overestimation source: bootstrapping with function approximation errors accumulates upward bias.</li>
+</ul>
+<h3>Soft Actor-Critic (SAC)</h3>
+<p><b>Framework:</b> Maximum entropy RL — maximize reward <b>and</b> policy entropy.</p>
+<div class="sg-formula">$$\pi^* = \arg\max_\pi \sum_t \mathbb{E}\!\left[r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))\right]$$</div>
+<ul>
+<li><b>Stochastic policy</b> (unlike DDPG/TD3): outputs Gaussian $$(\mu, \sigma)$$, samples via reparameterization.</li>
+<li><b>Reparameterization trick</b>: $$a = \mu_\theta(s) + \sigma_\theta(s) \cdot \epsilon$$, $$\epsilon \sim \mathcal{N}(0, I)$$ — enables backprop through sampling.</li>
+<li><b>Soft Q-function</b>: $$Q(s,a) = r + \gamma \mathbb{E}_{s'}\!\left[\min_{i=1,2} Q_{\phi_i'}(s', a') - \alpha \log \pi_\theta(a'|s')\right]$$, $$a' \sim \pi_\theta(\cdot|s')$$</li>
+<li><b>Soft V-function</b>: $$V(s) = \mathbb{E}_{a \sim \pi}[Q(s,a) - \alpha \log \pi(a|s)]$$</li>
+<li><b>Temperature</b> $$\alpha$$: controls exploration-exploitation trade-off. Can be <b>automatically tuned</b> by optimizing $$\alpha$$ to maintain a target entropy $$\bar{\mathcal{H}}$$.</li>
+<li>Uses <b>two Q-networks</b> (like TD3) but <b>no separate V-network</b> in later versions.</li>
+<li><b>No target policy smoothing or delayed updates</b> needed — entropy regularization provides sufficient smoothing.</li>
+</ul>
+<h3>Key Comparisons</h3>
+<table class="q-table">
+<tr><th>Feature</th><th>DDPG</th><th>TD3</th><th>SAC</th></tr>
+<tr><td>Policy type</td><td>Deterministic</td><td>Deterministic</td><td>Stochastic</td></tr>
+<tr><td># Critics</td><td>1</td><td>2</td><td>2</td></tr>
+<tr><td>Exploration</td><td>OU / Gaussian noise</td><td>Gaussian noise</td><td>Entropy maximization</td></tr>
+<tr><td>Anti-overestimation</td><td>None</td><td>Clipped double Q</td><td>Clipped double Q</td></tr>
+<tr><td>Entropy bonus</td><td>No</td><td>No</td><td>Yes ($$\alpha$$)</td></tr>
+<tr><td>Off-policy</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+</table>

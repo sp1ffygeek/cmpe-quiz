@@ -1,0 +1,55 @@
+<h2>📖 M10: TRPO, PPO & ACKTR</h2>
+<h3>The Step-Size Problem in Vanilla PG</h3>
+<p>Vanilla policy gradient is sensitive to learning rate: too large → policy collapse (catastrophic performance drop); too small → slow convergence. A single bad update can ruin the policy irreversibly because the data distribution shifts with the policy.</p>
+<h3>Trust Region Policy Optimization (TRPO)</h3>
+<p><b>Core idea:</b> Constrain each update so the new policy stays "close" to the old one in KL-divergence space.</p>
+<div class="sg-formula">$$\max_\theta \; L(\theta) = \mathbb{E}\!\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)} \hat{A}(s,a)\right] \quad \text{s.t.} \quad \mathbb{E}\!\left[D_{KL}(\pi_{\theta_{old}} \| \pi_\theta)\right] \leq \delta$$</div>
+<ul>
+<li><b>Surrogate objective</b> $$L(\theta)$$: linear approximation of performance improvement.</li>
+<li><b>KL constraint</b> ensures monotonic improvement (with approximation).</li>
+<li>Solved via <b>conjugate gradient</b> (to compute $$F^{-1}g$$) + <b>line search</b> (to satisfy constraint).</li>
+<li>Avoids forming/inverting the full Fisher matrix explicitly.</li>
+</ul>
+<h3>Natural Gradient</h3>
+<div class="sg-formula">$$\tilde{\nabla}_\theta J = F^{-1} \nabla_\theta J$$</div>
+<ul>
+<li>$$F = \mathbb{E}[\nabla_\theta \log \pi_\theta \cdot (\nabla_\theta \log \pi_\theta)^\top]$$ is the <b>Fisher Information Matrix (FIM)</b>.</li>
+<li>Natural gradient follows steepest ascent in <b>distribution space</b> (not parameter space).</li>
+<li>TRPO approximates the natural gradient step with a trust region constraint.</li>
+<li>Invariant to reparameterization of $$\theta$$.</li>
+</ul>
+<h3>Proximal Policy Optimization (PPO)</h3>
+<p><b>Simpler alternative to TRPO</b> — no conjugate gradient or line search needed.</p>
+<p><b>Clipped objective:</b></p>
+<div class="sg-formula">$$L^{CLIP}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t, \; \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]$$</div>
+<p>where $$r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$$ is the <b>probability ratio</b> and $$\epsilon \approx 0.2$$.</p>
+<ul>
+<li>When $$\hat{A}_t > 0$$: clips $$r_t$$ at $$1+\epsilon$$ (limits how much we increase probability of good actions).</li>
+<li>When $$\hat{A}_t < 0$$: clips $$r_t$$ at $$1-\epsilon$$ (limits how much we decrease probability of bad actions).</li>
+<li><b>Pessimistic bound</b>: takes the minimum of clipped and unclipped, preventing excessively large updates.</li>
+</ul>
+<p><b>Adaptive KL penalty (PPO-penalty):</b> $$L^{KLPEN} = L(\theta) - \beta \cdot D_{KL}(\pi_{old} \| \pi_\theta)$$; $$\beta$$ is adjusted based on observed KL.</p>
+<h3>Generalized Advantage Estimation (GAE)</h3>
+<div class="sg-formula">$$\hat{A}_t^{GAE(\gamma,\lambda)} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}$$</div>
+<p>where $$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$.</p>
+<ul>
+<li>$$\lambda = 0$$: 1-step TD advantage (low variance, high bias)</li>
+<li>$$\lambda = 1$$: Monte Carlo advantage (high variance, low bias)</li>
+<li>Typical: $$\lambda \in [0.9, 0.99]$$</li>
+</ul>
+<h3>ACKTR (Actor-Critic using Kronecker-Factored Trust Region)</h3>
+<ul>
+<li>Uses <b>K-FAC</b> to efficiently approximate the Fisher matrix: $$F \approx A \otimes S$$ per layer.</li>
+<li>$$A$$: second moments of layer inputs; $$S$$: second moments of output gradients.</li>
+<li>Applies natural gradient to <b>both</b> actor and critic.</li>
+<li>Kronecker structure reduces FIM inversion from $$O(n^3)$$ to $$O(n^{3/2})$$ per layer.</li>
+<li>Achieves TRPO-like trust region updates at near-SGD computational cost.</li>
+</ul>
+<h3>Key Comparisons</h3>
+<table class="q-table">
+<tr><th>Method</th><th>Update Rule</th><th>Constraint</th><th>Complexity</th></tr>
+<tr><td>Vanilla PG</td><td>$$\theta + \alpha \nabla J$$</td><td>None</td><td>Low</td></tr>
+<tr><td>TRPO</td><td>$$\theta + \alpha F^{-1}\nabla J$$</td><td>KL ≤ δ</td><td>High (CG + line search)</td></tr>
+<tr><td>PPO-Clip</td><td>$$\theta + \alpha \nabla L^{CLIP}$$</td><td>Implicit (clipping)</td><td>Low</td></tr>
+<tr><td>ACKTR</td><td>$$\theta + \alpha \hat{F}^{-1}\nabla J$$</td><td>KL (K-FAC)</td><td>Medium</td></tr>
+</table>

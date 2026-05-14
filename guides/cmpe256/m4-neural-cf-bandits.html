@@ -1,0 +1,71 @@
+<h2>📖 M4: Neural CF & Bandits</h2>
+<h3>Neural Collaborative Filtering (NCF)</h3>
+<ul>
+<li><b>Motivation</b>: Standard MF uses a linear dot product $$q_i^T p_u$$ — cannot capture non-linear user-item interactions.</li>
+<li><b>Key idea</b>: Replace the dot product with a neural network that learns an arbitrary function of user/item embeddings.</li>
+<li><b>Input</b>: User and item one-hot vectors → passed through embedding layers to get dense vectors $$p_u, q_i$$.</li>
+</ul>
+<h3>NeuMF Building Blocks</h3>
+<table class="q-table">
+<tr><th>Component</th><th>Operation</th><th>What It Models</th></tr>
+<tr><td><b>GMF</b> (Generalized Matrix Factorization)</td><td>Element-wise product $$p_u \odot q_i$$ → linear output layer</td><td>Replicates standard MF; captures linear interactions</td></tr>
+<tr><td><b>MLP</b> (Multi-Layer Perceptron)</td><td>Concatenation $$[p_u; q_i]$$ → deep layers with ReLU</td><td>Captures non-linear interactions via learned hidden representations</td></tr>
+<tr><td><b>NeuMF</b></td><td>Concatenate GMF and MLP outputs → final prediction layer</td><td>Combines linear (GMF) and non-linear (MLP) interaction modeling</td></tr>
+</table>
+<ul>
+<li>GMF with identity activation and uniform weights = standard MF.</li>
+<li>NeuMF uses <b>separate embeddings</b> for GMF and MLP branches.</li>
+</ul>
+<h3>Two-Tower Models</h3>
+<ul>
+<li><b>Tower 1 (Candidate Generation)</b>: Retrieves a small set of candidates from millions of items using a lightweight model (e.g., approximate nearest neighbors).</li>
+<li><b>Tower 2 (Ranking)</b>: Scores and ranks the candidates using a richer, more expensive model with more features.</li>
+<li><b>Why two towers?</b> Efficiency — scoring all items with a complex model is infeasible; the first tower narrows the search space.</li>
+</ul>
+<h3>YouTube Case Study (Figure 2 Architecture)</h3>
+<ul>
+<li><b>Candidate Generation NN</b>: Takes user history (watch, search) → outputs top ~hundreds of candidates. Optimizes for broad relevance (softmax over video corpus).</li>
+<li><b>Ranking NN</b>: Takes candidates + rich features (video age, channel, user demographics) → outputs a ranked list. Optimizes for expected watch time.</li>
+<li><b>Key insight</b>: Two-stage approach balances recall (generation) with precision (ranking).</li>
+</ul>
+<h3>Bandits in Recommender Systems</h3>
+<ul>
+<li><b>Problem</b>: Exploration vs. exploitation — should we recommend items we know the user likes (exploit) or try new items to learn preferences (explore)?</li>
+<li><b>Improvement over A/B testing</b>: Bandits dynamically allocate traffic to better-performing options instead of fixed 50/50 splits.</li>
+<li><b>Regret</b>: $$R_T = T\mu^* - \sum_{t=1}^{T} \mu_{a_t}$$ — cumulative difference between optimal and chosen actions. Goal: minimize regret.</li>
+</ul>
+<h3>Bandit Strategies</h3>
+<table class="q-table">
+<tr><th>Strategy</th><th>Key Idea</th><th>Trade-off</th></tr>
+<tr><td><b>ε-greedy</b></td><td>With probability $$\varepsilon$$ explore randomly, otherwise exploit best arm</td><td>Small $$\varepsilon$$ = more exploitation; simple but wastes exploration budget</td></tr>
+<tr><td><b>ε-first</b></td><td>Explore for first $$\varepsilon T$$ rounds, then exploit best arm forever</td><td>Clean separation; but no adaptation after exploration phase</td></tr>
+<tr><td><b>UCB</b> (Upper Confidence Bound)</td><td>$$a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}\right]$$</td><td>"Optimism in the face of uncertainty" — prefers under-explored arms</td></tr>
+<tr><td><b>Thompson Sampling</b></td><td>Sample from posterior (e.g., Beta distribution), pick arm with highest sample</td><td>Naturally balances explore/exploit; Bayesian approach</td></tr>
+</table>
+<h3>UCB Formula Breakdown</h3>
+<div class="sg-formula">$$a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}\right]$$</div>
+<ul>
+<li>$$\hat{\mu}_a$$: estimated mean reward of arm $$a$$. $$t$$: total rounds so far. $$N_a$$: times arm $$a$$ was pulled. $$c$$: exploration parameter.</li>
+<li>The bonus term $$c\sqrt{\frac{\ln t}{N_a}}$$ grows when an arm is under-explored (small $$N_a$$) and shrinks as it's pulled more.</li>
+</ul>
+<h3>Thompson Sampling Details</h3>
+<ul>
+<li>Maintain a Beta($$\alpha, \beta$$) distribution per arm (for Bernoulli rewards).</li>
+<li><b>Update</b>: Success → $$\alpha \leftarrow \alpha + 1$$; Failure → $$\beta \leftarrow \beta + 1$$.</li>
+<li>Each round: sample from each arm's posterior, pick the arm with the highest sample.</li>
+</ul>
+<h3>Contextual Bandits</h3>
+<ul>
+<li>Extension: arm rewards depend on <b>context features</b> (user profile, time of day, device).</li>
+<li><b>Netflix artwork personalization</b>: Different users see different artwork for the same title based on their viewing history.</li>
+<li><b>DoorDash</b>: Contextual bandits for restaurant ranking based on user location, time, cuisine preferences.</li>
+</ul>
+<h3>Key Formulas at a Glance</h3>
+<table class="q-table">
+<tr><th>Formula</th><th>Expression</th></tr>
+<tr><td>GMF</td><td>$$\phi^{GMF} = p_u \odot q_i$$</td></tr>
+<tr><td>MLP input</td><td>$$\phi^{MLP} = \text{ReLU}(W^T[p_u; q_i] + b)$$</td></tr>
+<tr><td>NeuMF</td><td>$$\hat{y} = \sigma(h^T[\phi^{GMF}; \phi^{MLP}])$$</td></tr>
+<tr><td>UCB</td><td>$$a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}\right]$$</td></tr>
+<tr><td>Regret</td><td>$$R_T = T\mu^* - \sum_{t=1}^{T} \mu_{a_t}$$</td></tr>
+</table>

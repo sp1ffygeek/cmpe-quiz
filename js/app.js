@@ -402,6 +402,19 @@ function filterReview(filter, btn) {
   renderReviewList(filter);
 }
 
+// ===== EXIT QUIZ =====
+function exitQuiz() {
+  if (state.answered === 0) {
+    // No questions answered, just go back to mode selection
+    stopTimer();
+    showScreen('screen-mode');
+    return;
+  }
+  if (confirm(`Exit quiz? You've answered ${state.answered} of ${state.questions.length} questions. View your results?`)) {
+    showSummary();
+  }
+}
+
 // ===== RESTART =====
 function restartQuiz() {
   startQuiz(state.questions.length);

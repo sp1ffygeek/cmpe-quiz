@@ -1,0 +1,87 @@
+<h2>📖 M6: Communities, Embeddings & Fairness</h2>
+<h3>Community Detection</h3>
+<p><b>Goal</b>: Identify densely connected groups (communities) within a graph where nodes within a community are more connected to each other than to nodes outside.</p>
+<h4>Hierarchical Methods</h4>
+<table class="q-table">
+<tr><th>Approach</th><th>Direction</th><th>Description</th></tr>
+<tr><td><b>Top-down (Divisive)</b></td><td>Start with entire graph → split</td><td>Iteratively remove edges to break graph into communities</td></tr>
+<tr><td><b>Bottom-up (Agglomerative)</b></td><td>Start with individual nodes → merge</td><td>Iteratively merge nodes/communities based on similarity</td></tr>
+</table>
+<h4>Girvan-Newman Algorithm (Top-Down / Divisive)</h4>
+<p>1. Compute <b>edge betweenness</b> for all edges — the number of shortest paths between all pairs of nodes that pass through that edge.</p>
+<p>2. <b>Remove</b> the edge with the highest betweenness.</p>
+<p>3. <b>Recompute</b> edge betweenness for remaining edges.</p>
+<p>4. Repeat until desired community structure emerges → produces a <b>hierarchical decomposition</b> (dendrogram).</p>
+<ul>
+<li>Edge betweenness represents how much an edge acts as a "bridge" between communities.</li>
+</ul>
+<h4>Louvain Algorithm (Bottom-Up / Agglomerative)</h4>
+<ul>
+<li><b>Main difference from Girvan-Newman</b>: Bottom-up (agglomerative) instead of top-down (divisive).</li>
+<li><b>How it works</b>: (1) Each node starts as its own community. (2) Greedily move nodes to neighboring communities to maximize <b>modularity</b>. (3) Collapse communities into super-nodes and repeat.</li>
+<li><b>Advantages</b>: Runs in approximately <b>linear time</b> $$O(n \log n)$$; scales to very large networks; directly optimizes modularity.</li>
+</ul>
+<h3>Embeddings & Recommender Systems</h3>
+<h4>Shallow vs. Deep Embeddings</h4>
+<table class="q-table">
+<tr><th>Type</th><th>Examples</th><th>Key Idea</th></tr>
+<tr><td><b>Shallow</b></td><td>node2vec, DeepWalk</td><td>Learn a lookup table of embeddings via random walks; no parameter sharing across nodes</td></tr>
+<tr><td><b>Deep</b></td><td>GNNs (GCN, LightGCN)</td><td>Learn embeddings through message passing / neighborhood aggregation; generalize to unseen nodes</td></tr>
+</table>
+<h4>LightGCN Architecture</h4>
+<ul>
+<li><b>Input</b>: Bipartite user-item interaction graph (users on one side, items on the other; edges = interactions).</li>
+<li><b>Convolution</b>: 3-layer neighborhood aggregation — each layer propagates embeddings from neighbors:</li>
+</ul>
+<div class="sg-formula">$$e_u^{(k+1)} = \sum_{i \in N(u)} \frac{1}{\sqrt{|N(u)|}\sqrt{|N(i)|}} e_i^{(k)}$$</div>
+<ul>
+<li><b>Final embedding</b>: Weighted sum across all layers (layer 0 = initial, layers 1–3 = convolved):</li>
+</ul>
+<div class="sg-formula">$$e_u = \sum_{k=0}^{K} \alpha_k \, e_u^{(k)}$$</div>
+<p>where $$\alpha_k = \frac{1}{K+1}$$ (uniform weighting in practice).</p>
+<ul>
+<li><b>Prediction</b>: Dot product of final user and item embeddings: $$\hat{y}_{ui} = e_u^T e_i$$.</li>
+<li><b>Loss function</b>: Uses positive edges (observed interactions) and negative edges (sampled non-interactions). BPR loss:</li>
+</ul>
+<div class="sg-formula">$$L_{BPR} = -\sum_{(u,i,j)} \ln \sigma(\hat{y}_{ui} - \hat{y}_{uj})$$</div>
+<ul>
+<li><b>Weakness of binary approach</b>: Treats all interactions equally (click = purchase = view); loses rating granularity.</li>
+</ul>
+<h3>Fairness in ML (Google Developers Tutorial)</h3>
+<h4>Types of Bias</h4>
+<table class="q-table">
+<tr><th>Bias Type</th><th>Definition</th><th>Example</th></tr>
+<tr><td><b>Reporting</b></td><td>Data reflects what is reported, not reality</td><td>Only severe side effects reported in drug reviews</td></tr>
+<tr><td><b>Historical</b></td><td>Data encodes past societal biases</td><td>Hiring data reflects historical discrimination</td></tr>
+<tr><td><b>Automation</b></td><td>Over-trusting automated decisions</td><td>Accepting ML predictions without human review</td></tr>
+<tr><td><b>Selection</b></td><td>Data doesn't represent the population</td><td><b>Coverage</b>: missing groups; <b>Non-response</b>: certain groups don't respond; <b>Sampling</b>: biased sampling method</td></tr>
+<tr><td><b>Group attribution</b></td><td>Generalizing from group to individual</td><td><b>In-group</b>: "people like me are X"; <b>Out-group homogeneity</b>: "they are all the same"</td></tr>
+<tr><td><b>Implicit</b></td><td>Unconscious assumptions affect decisions</td><td>Associating certain names with certain demographics</td></tr>
+<tr><td><b>Confirmation</b></td><td>Seeking data that confirms existing beliefs</td><td>Only looking at examples that support your hypothesis</td></tr>
+<tr><td><b>Experimenter's</b></td><td>Researcher's expectations influence outcomes</td><td>Designing experiments to confirm a desired result</td></tr>
+</table>
+<h4>Mitigating Bias</h4>
+<ul>
+<li><b>Problems with log loss</b>: Optimizing log loss alone can lead to a model that performs well on average but poorly on minority subgroups. The loss function doesn't distinguish between errors on different demographic groups.</li>
+</ul>
+<h4>Evaluating for Bias</h4>
+<ul>
+<li><b>Class-imbalanced datasets</b>: When one class dominates (e.g., 99% negative), accuracy is misleading (a model predicting all-negative gets 99% accuracy).</li>
+<li><b>Problems with accuracy/precision/recall</b>: These aggregate metrics can hide disparate performance across subgroups.</li>
+<li><b>Confusion matrix for bias</b>: Compare TP/FP/TN/FN rates <b>across demographic groups</b>. If FP rate is much higher for one group, the model is biased against that group.</li>
+</ul>
+<h4>Fairness Metrics</h4>
+<table class="q-table">
+<tr><th>Metric</th><th>Definition</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>Demographic parity</b></td><td>Positive prediction rate is equal across groups: $$P(\hat{Y}=1 \mid G=a) = P(\hat{Y}=1 \mid G=b)$$</td><td>Simple; ensures equal representation in outcomes</td><td>Ignores actual qualification differences; can reduce overall accuracy</td></tr>
+<tr><td><b>Counterfactual fairness</b></td><td>Prediction doesn't change if sensitive attribute is flipped: $$\hat{Y}(x) = \hat{Y}(x')$$ where $$x'$$ differs only in protected attribute</td><td>Captures individual-level fairness; intuitive</td><td>Hard to define "counterfactual" in practice; computationally expensive</td></tr>
+</table>
+<h3>Key Formulas at a Glance</h3>
+<table class="q-table">
+<tr><th>Formula</th><th>Expression</th></tr>
+<tr><td>LightGCN layer propagation</td><td>$$e_u^{(k+1)} = \sum_{i \in N(u)} \frac{e_i^{(k)}}{\sqrt{</td><td>N(u)</td><td>}\sqrt{</td><td>N(i)</td><td>}}$$</td></tr>
+<tr><td>LightGCN final embedding</td><td>$$e_u = \sum_{k=0}^{K} \alpha_k \, e_u^{(k)}$$</td></tr>
+<tr><td>LightGCN prediction</td><td>$$\hat{y}_{ui} = e_u^T e_i$$</td></tr>
+<tr><td>BPR loss</td><td>$$L = -\sum_{(u,i,j)} \ln \sigma(\hat{y}_{ui} - \hat{y}_{uj})$$</td></tr>
+<tr><td>Demographic parity</td><td>$$P(\hat{Y}=1 \mid G=a) = P(\hat{Y}=1 \mid G=b)$$</td></tr>
+</table>

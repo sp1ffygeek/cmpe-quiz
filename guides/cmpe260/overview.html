@@ -1,0 +1,118 @@
+<h2>📖 CMPE 260 — Reinforcement Learning Study Guide</h2>
+
+<div class="sg-section">
+<h3>1. Policy Gradient Methods</h3>
+<div class="sg-formula">$$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a|s)\, Q^{\pi}(s,a)\right]$$</div>
+<h4>REINFORCE (Monte Carlo PG)</h4>
+<ul>
+<li>Uses full episode return $$G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k+1}$$</li>
+<li>High variance, unbiased. Baseline $$b(s)$$ reduces variance: $$\nabla_\theta J = \mathbb{E}[\nabla_\theta \log \pi_\theta(a|s)(G_t - b(s))]$$</li>
+</ul>
+<h4>Actor-Critic</h4>
+<ul>
+<li><b>Actor</b>: policy $$\pi_\theta(a|s)$$ — <b>Critic</b>: value $$V_\phi(s)$$ or $$Q_\phi(s,a)$$</li>
+<li>Advantage: $$A(s,a) = Q(s,a) - V(s) \approx r + \gamma V(s') - V(s)$$ (TD error)</li>
+<li>Lower variance than REINFORCE, some bias from critic</li>
+</ul>
+</div>
+
+<div class="sg-section">
+<h3>2. TRPO & PPO</h3>
+<h4>TRPO (Trust Region Policy Optimization)</h4>
+<ul>
+<li>Surrogate objective: $$L(\theta) = \mathbb{E}\!\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)} \hat{A}(s,a)\right]$$</li>
+<li>KL constraint: $$\mathbb{E}[D_{KL}(\pi_{\theta_{old}} \| \pi_\theta)] \leq \delta$$</li>
+<li>Uses conjugate gradient + line search (no explicit Hessian)</li>
+<li>Monotonic improvement guarantee</li>
+</ul>
+<h4>PPO (Proximal Policy Optimization)</h4>
+<div class="sg-formula">$$L^{CLIP}(\theta) = \mathbb{E}\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \text{clip}(r_t(\theta), 1{-}\epsilon, 1{+}\epsilon)\hat{A}_t\right)\right]$$</div>
+<ul>
+<li>$$r_t(\theta) = \pi_\theta(a|s) / \pi_{\theta_{old}}(a|s)$$, typical $$\epsilon = 0.2$$</li>
+<li>Clips ratio to prevent large updates — simpler than TRPO</li>
+<li>When $$\hat{A} > 0$$: caps $$r_t$$ at $$1+\epsilon$$ (limits greediness)</li>
+<li>When $$\hat{A} < 0$$: caps $$r_t$$ at $$1-\epsilon$$ (limits avoidance)</li>
+</ul>
+<h4>ACKTR</h4>
+<ul>
+<li>Uses K-FAC to approximate Fisher Information Matrix: $$F \approx A \otimes S$$</li>
+<li>Natural gradient: $$\Delta\theta = F^{-1} \nabla_\theta J$$</li>
+</ul>
+</div>
+
+<div class="sg-section">
+<h3>3. DDPG, TD3, SAC</h3>
+<h4>DDPG (Deep Deterministic Policy Gradient)</h4>
+<ul>
+<li>Deterministic policy $$\mu_\theta(s)$$ for continuous actions</li>
+<li>Soft target updates: $$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$$, $$\tau \ll 1$$</li>
+<li>Ornstein-Uhlenbeck noise for exploration</li>
+<li>Off-policy with replay buffer</li>
+</ul>
+<h4>TD3 (Twin Delayed DDPG) — 3 Modifications</h4>
+<ul>
+<li><b>Twin critics</b>: $$y = r + \gamma \min(Q_1', Q_2')$$ — reduces overestimation</li>
+<li><b>Delayed policy updates</b>: update actor every $$d$$ critic steps</li>
+<li><b>Target policy smoothing</b>: add clipped noise to target action</li>
+</ul>
+<h4>SAC (Soft Actor-Critic)</h4>
+<div class="sg-formula">$$J(\pi) = \sum_t \mathbb{E}\!\left[r(s_t,a_t) + \alpha\, H(\pi(\cdot|s_t))\right]$$</div>
+<ul>
+<li>Maximum entropy RL: policy maximizes reward + entropy</li>
+<li>Soft value: $$V(s) = \mathbb{E}[Q(s,a) - \alpha \log \pi(a|s)]$$</li>
+<li>Reparameterization trick: $$a = f_\theta(\epsilon; s)$$, $$\epsilon \sim \mathcal{N}(0,1)$$</li>
+<li>Auto-tuned temperature $$\alpha$$ via dual gradient descent</li>
+<li>Stochastic policy → better exploration than DDPG/TD3</li>
+</ul>
+</div>
+
+<div class="sg-section">
+<h3>4. A2C / A3C</h3>
+<ul>
+<li><b>A3C</b>: Asynchronous parallel actors, each with own env copy</li>
+<li><b>A2C</b>: Synchronous — waits for all workers, averages gradients</li>
+<li>n-step returns: $$G_t^{(n)} = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V(s_{t+n})$$</li>
+<li>Loss = policy loss + value loss + entropy bonus $$\beta H(\pi)$$</li>
+<li>Entropy bonus prevents premature convergence</li>
+<li>No replay buffer needed (on-policy)</li>
+</ul>
+</div>
+
+<div class="sg-section">
+<h3>5. Imitation & Multi-Goal RL</h3>
+<h4>Behavioral Cloning (BC)</h4>
+<ul>
+<li>Supervised learning: $$\min_\theta \mathbb{E}_{(s,a)\sim\mathcal{D}}[-\log \pi_\theta(a|s)]$$</li>
+<li><b>Distribution shift</b>: compounding errors at test time (covariate shift)</li>
+<li>DAgger: iteratively queries expert on learner's visited states</li>
+</ul>
+<h4>GAIL (Generative Adversarial Imitation Learning)</h4>
+<ul>
+<li>Discriminator $$D(s,a)$$: distinguishes expert vs. policy trajectories</li>
+<li>Policy reward: $$r = -\log(1 - D(s,a))$$</li>
+<li>No explicit reward engineering needed</li>
+</ul>
+<h4>HER (Hindsight Experience Replay)</h4>
+<ul>
+<li>Relabels failed trajectories with achieved goal as desired goal</li>
+<li>Strategies: <code>final</code>, <code>future</code>, <code>episode</code>, <code>random</code></li>
+<li>Works with any off-policy algorithm (e.g., DDPG + HER)</li>
+</ul>
+</div>
+
+<div class="sg-section">
+<h3>6. Model-Based RL & Offline RL</h3>
+<h4>MBRL</h4>
+<ul>
+<li>Learn dynamics model $$\hat{T}(s'|s,a)$$, plan with MPC or Dyna</li>
+<li>Model exploitation risk: policy exploits model errors</li>
+<li>Ensemble models for uncertainty estimation</li>
+</ul>
+<h4>Offline RL</h4>
+<ul>
+<li><b>Extrapolation error</b>: Q overestimates for unseen (s,a) pairs</li>
+<li><b>CQL</b>: Conservative Q-Learning — penalizes Q for OOD actions</li>
+<li><b>BCQ</b>: Batch-Constrained Q — restricts actions to data support</li>
+<li>No environment interaction during training</li>
+</ul>
+</div>

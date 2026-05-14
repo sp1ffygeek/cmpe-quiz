@@ -7,8 +7,8 @@
 <script>
 window.MathJax = {
   tex: {
-    inlineMath: [['$','$'],['\\(','\\)']],
-    displayMath: [['$$','$$'],['\\[','\\]']]
+    inlineMath: [['$$','$$'],['$','$'],['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
   },
   startup: {
     ready: () => {
@@ -73,6 +73,7 @@ window.MathJax = {
     <div class="progress-text">
       <span id="progress-label">Question 1 of 100</span>
       <span id="score-label">Score: 0/0</span>
+      <button class="exit-btn" onclick="exitQuiz()" title="Exit quiz and view results">✕ Exit</button>
     </div>
     <div class="card fade-in" id="question-card">
       <span class="q-tier" id="q-tier"></span>

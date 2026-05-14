@@ -1,0 +1,57 @@
+<h2>📖 M3: Matrix Factorization</h2>
+<h3>Basic Idea of Matrix Factorization</h3>
+<ul>
+<li><b>Goal</b>: Approximate the sparse utility matrix $$R$$ with two low-rank factor matrices: $$R \approx UV^T$$.</li>
+<li>Each user $$u$$ is represented by a latent factor vector $$p_u \in \mathbb{R}^f$$; each item $$i$$ by $$q_i \in \mathbb{R}^f$$.</li>
+<li><b>Prediction</b>: $$\hat{r}_{ui} = q_i^T p_u$$ — dot product in a latent factor space of dimensionality $$f$$.</li>
+<li>Latent factors capture hidden patterns (e.g., genre preference, movie seriousness) without explicit feature engineering.</li>
+</ul>
+<h3>How MF Differs from SVD</h3>
+<ul>
+<li><b>SVD</b> (Singular Value Decomposition) requires a <b>complete</b> matrix — undefined when entries are missing.</li>
+<li><b>MF</b> works directly with <b>sparse</b> matrices by only optimizing over observed ratings $$(u,i) \in K$$.</li>
+<li>SVD: $$R = U \Sigma V^T$$ (exact decomposition). MF: $$R \approx P Q^T$$ (approximate, learned).</li>
+</ul>
+<h3>Minimizing SSE (Sum of Squared Errors)</h3>
+<div class="sg-formula">$$\min_{q,p} \sum_{(u,i) \in K} (r_{ui} - q_i^T p_u)^2$$</div>
+<h3>Regularization</h3>
+<div class="sg-formula">$$\min_{q,p} \sum_{(u,i) \in K} (r_{ui} - q_i^T p_u)^2 + \lambda(\|q_i\|^2 + \|p_u\|^2)$$</div>
+<ul>
+<li>$$\lambda$$ controls the trade-off: <b>large $$\lambda$$</b> → more regularization → prevents overfitting but may underfit; <b>small $$\lambda$$</b> → fits training data closely → risk of overfitting.</li>
+</ul>
+<h3>Optimization Methods</h3>
+<table class="q-table">
+<tr><th>Method</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>SGD</b> (Stochastic Gradient Descent)</td><td>Easier to implement, faster convergence</td><td>Not ideal for high dimensions, sequential</td></tr>
+<tr><td><b>ALS</b> (Alternating Least Squares)</td><td>Good for implicit data, parallelizable (fix one matrix, solve the other)</td><td>More complex per iteration</td></tr>
+</table>
+<ul>
+<li><b>SGD update rules</b>: $$q_i \leftarrow q_i + \gamma(e_{ui} \cdot p_u - \lambda \cdot q_i)$$, $$p_u \leftarrow p_u + \gamma(e_{ui} \cdot q_i - \lambda \cdot p_u)$$ where $$e_{ui} = r_{ui} - q_i^T p_u$$.</li>
+</ul>
+<h3>Modeling Biases</h3>
+<div class="sg-formula">$$\hat{r}_{ui} = \mu + b_u + b_i + q_i^T p_u$$</div>
+<ul>
+<li>$$\mu$$: global average rating. $$b_u$$: user bias (tendency to rate high/low). $$b_i$$: item bias (inherently popular/unpopular).</li>
+<li>Example: $$\mu = 3.5$$, $$b_u = 0.3$$, $$b_i = 0.5$$, $$q_i^T p_u = 0.2$$ → $$\hat{r}_{ui} = 3.5 + 0.3 + 0.5 + 0.2 = 4.5$$.</li>
+</ul>
+<h3>Predicting Ratings from Decomposed Matrices</h3>
+<p>Given $$P$$ (users × factors) and $$Q$$ (items × factors):</p>
+<div class="sg-formula">$$\hat{r}_{ui} = \sum_{k=1}^{f} p_{uk} \cdot q_{ik}$$</div>
+<h3>Factorization Machines (FM)</h3>
+<ul>
+<li><b>Generalization of MF</b>: allows incorporation of arbitrary metadata (user demographics, item attributes, context).</li>
+<li><b>Model</b>: $$\hat{y}(\mathbf{x}) = w_0 + \sum_{i=1}^{n} w_i x_i + \sum_{i=1}^{n}\sum_{j=i+1}^{n} \langle \mathbf{v}_i, \mathbf{v}_j \rangle x_i x_j$$</li>
+<li>$$w_0$$: global bias. $$w_i$$: feature weight. $$\langle \mathbf{v}_i, \mathbf{v}_j \rangle$$: pairwise interaction via latent vectors.</li>
+<li><b>Key advantage</b>: Models all pairwise feature interactions even with sparse data (each feature has a latent vector, not a separate weight per pair).</li>
+<li><b>Complexity</b>: Naïve $$O(kn^2)$$ → reformulated to $$O(kn)$$ (linear in features).</li>
+</ul>
+<h3>Key Formulas at a Glance</h3>
+<table class="q-table">
+<tr><th>Formula</th><th>Expression</th></tr>
+<tr><td>MF prediction</td><td>$$\hat{r}_{ui} = q_i^T p_u$$</td></tr>
+<tr><td>MF with biases</td><td>$$\hat{r}_{ui} = \mu + b_u + b_i + q_i^T p_u$$</td></tr>
+<tr><td>SSE objective</td><td>$$\min \sum_{(u,i) \in K} (r_{ui} - q_i^T p_u)^2$$</td></tr>
+<tr><td>Regularized objective</td><td>$$\min \sum_{(u,i) \in K} (r_{ui} - q_i^T p_u)^2 + \lambda(\|q_i\|^2 + \|p_u\|^2)$$</td></tr>
+<tr><td>SGD error</td><td>$$e_{ui} = r_{ui} - q_i^T p_u$$</td></tr>
+<tr><td>FM model</td><td>$$\hat{y}(\mathbf{x}) = w_0 + \sum w_i x_i + \sum\sum \langle \mathbf{v}_i, \mathbf{v}_j \rangle x_i x_j$$</td></tr>
+</table>

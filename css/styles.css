@@ -118,6 +118,22 @@ body {
   margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+.exit-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.exit-btn:hover {
+  background: var(--wrong-bg);
+  color: var(--wrong);
+  border-color: var(--wrong);
 }
 
 /* Cards */

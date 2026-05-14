@@ -1,0 +1,49 @@
+<h2>📖 M09: Policy Gradient Methods</h2>
+<h3>Core Idea</h3>
+<p>Policy gradient methods <b>directly parameterize the policy</b> $$\pi_\theta(a|s)$$ and optimize $$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$$ by gradient ascent. Unlike value-based methods (DQN), they naturally handle <b>continuous actions</b> and <b>stochastic policies</b>.</p>
+<h3>Policy Gradient Theorem</h3>
+<div class="sg-formula">$$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\!\left[\nabla_\theta \log \pi_\theta(a|s) \cdot Q^{\pi}(s,a)\right]$$</div>
+<ul>
+<li><b>Log-derivative trick</b>: $$\nabla_\theta \pi_\theta(a|s) = \pi_\theta(a|s) \cdot \nabla_\theta \log \pi_\theta(a|s)$$</li>
+<li>The term $$\nabla_\theta \log \pi_\theta(a|s)$$ is the <b>score function</b> (likelihood ratio).</li>
+</ul>
+<h3>REINFORCE (Monte Carlo PG)</h3>
+<ul>
+<li>Replace $$Q^\pi(s,a)$$ with sampled return $$G_t = \sum_{k=0}^{T-t} \gamma^k r_{t+k}$$</li>
+<li>Update: $$\theta \leftarrow \theta + \alpha \gamma^t G_t \nabla_\theta \log \pi_\theta(a_t|s_t)$$</li>
+<li><b>Unbiased</b> but <b>high variance</b>; requires complete episodes.</li>
+</ul>
+<h3>Baselines for Variance Reduction</h3>
+<ul>
+<li>Subtract baseline $$b(s)$$ from return: use $$G_t - b(s_t)$$</li>
+<li><b>Does not introduce bias</b>: $$\mathbb{E}[\nabla_\theta \log \pi_\theta(a|s) \cdot b(s)] = 0$$ (because $$\sum_a \nabla_\theta \pi_\theta(a|s) = \nabla_\theta 1 = 0$$)</li>
+<li>Common baseline: $$b(s) = V^\pi(s)$$, yielding the <b>advantage</b> $$A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)$$</li>
+</ul>
+<h3>Actor-Critic (AC)</h3>
+<ul>
+<li><b>Actor</b>: policy $$\pi_\theta(a|s)$$ — updated via policy gradient</li>
+<li><b>Critic</b>: value function $$V_w(s)$$ — updated via TD learning</li>
+<li>TD error as advantage estimate: $$\delta_t = r_t + \gamma V_w(s_{t+1}) - V_w(s_t) \approx A^\pi(s_t, a_t)$$</li>
+<li><b>Lower variance</b> than REINFORCE (bootstrapping), but introduces <b>bias</b>.</li>
+</ul>
+<h3>Policy Parameterizations</h3>
+<table class="q-table">
+<tr><th>Setting</th><th>Policy</th><th>Formula</th></tr>
+<tr><td>Discrete actions</td><td>Softmax</td><td>$$\pi_\theta(a\|s) = \frac{e^{\phi(s,a)^\top \theta}}{\sum_{a'} e^{\phi(s,a')^\top \theta}}$$</td></tr>
+<tr><td>Continuous actions</td><td>Gaussian</td><td>$$\pi_\theta(a\|s) = \mathcal{N}(\mu_\theta(s), \sigma_\theta^2(s))$$</td></tr>
+</table>
+<h3>Compatible Function Approximation</h3>
+<p>If critic $$Q_w(s,a) = w^\top \nabla_\theta \log \pi_\theta(a|s)$$, then using $$Q_w$$ in the PG theorem introduces <b>no bias</b> (compatible features condition).</p>
+<h3>On-Policy vs Off-Policy PG</h3>
+<ul>
+<li><b>On-policy</b> (REINFORCE, A2C): data from current $$\pi_\theta$$; discard after update.</li>
+<li><b>Off-policy AC</b>: uses replay buffers + target networks; importance sampling corrections needed; more sample-efficient but harder to stabilize.</li>
+</ul>
+<h3>Key Contrasts</h3>
+<table class="q-table">
+<tr><th>Property</th><th>REINFORCE</th><th>Actor-Critic</th></tr>
+<tr><td>Return estimate</td><td>Monte Carlo $$G_t$$</td><td>TD: $$r + \gamma V(s')$$</td></tr>
+<tr><td>Bias</td><td>None</td><td>Some (bootstrapping)</td></tr>
+<tr><td>Variance</td><td>High</td><td>Lower</td></tr>
+<tr><td>Episode requirement</td><td>Full episodes</td><td>Step-by-step</td></tr>
+</table>
