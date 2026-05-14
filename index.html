@@ -57,9 +57,11 @@ window.MathJax = {
     <div class="card mode-select fade-in">
       <h2 id="mode-title"></h2>
       <p class="subtitle" id="mode-subtitle"></p>
+      <button class="mode-btn secondary" onclick="startQuiz(10)">🎯 Quick 10 (Random)</button>
+      <button class="mode-btn secondary" onclick="startQuiz(25)">⚡ Quick 25 (Random)</button>
+      <button class="mode-btn secondary" onclick="startQuiz(50)">🔥 Quick 50 (Random)</button>
+      <button class="mode-btn secondary" onclick="startQuiz(100)">💪 100 Questions (Random)</button>
       <button class="mode-btn" onclick="startQuiz(200)">📋 All 200 Questions (Shuffled)</button>
-      <button class="mode-btn secondary" onclick="startQuiz(50)">⚡ Quick 50 (Random)</button>
-      <button class="mode-btn secondary" onclick="startQuiz(25)">🎯 Quick 25 (Random)</button>
       <button class="mode-btn secondary" onclick="openStudyGuide()" style="margin-top:8px;border-color:var(--accent);color:var(--accent)">📖 Study Guide</button>
       <button class="back-link" onclick="showScreen('screen-course')">← Back to course selection</button>
     </div>
