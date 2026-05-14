@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMPE Exam Quiz</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']]
+  },
+  startup: {
+    ready: () => {
+      MathJax.startup.defaultReady();
+      window.mathJaxReady = true;
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root {
+  --bg: #f8f6f2;
+  --bg2: #efeae3;
+  --bg3: #e2ddd5;
+  --text: #2d2a26;
+  --text2: #7a756e;
+  --accent: #5b7fa6;
+  --accent-hover: #4a6e95;
+  --correct: #6b9e78;
+  --correct-bg: #dceee0;
+  --wrong: #c4645a;
+  --wrong-bg: #f5ddd9;
+  --border: #d4cfc7;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 16px rgba(45,42,38,0.06);
+  --radius: 14px;
+  --header-gradient: linear-gradient(135deg, #5b7fa6 0%, #7a9bb8 50%, #a3b5c8 100%);
+}
+[data-theme="dark"] {
+  --bg: #1a1917;
+  --bg2: #262420;
+  --bg3: #33302b;
+  --text: #e8e4de;
+  --text2: #9e9a93;
+  --accent: #7da3c7;
+  --accent-hover: #93b5d5;
+  --correct: #7db88a;
+  --correct-bg: #1e2e22;
+  --wrong: #d47a72;
+  --wrong-bg: #2e1e1c;
+  --border: #4a4640;
+  --card-bg: #262420;
+  --card-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  --header-gradient: linear-gradient(135deg, #3d5a7a 0%, #4a6e8f 50%, #5b7fa6 100%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px;
+}
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  margin: -20px -20px 20px -20px;
+  background: var(--header-gradient);
+  border-radius: 0 0 var(--radius) var(--radius);
+  color: #fff;
+}
+.header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Timer */
+.timer-display {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.15);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.timer-display .q-timer {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.75rem;
+  margin-left: 6px;
+}
+.theme-toggle {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #fff;
+  color: var(--text);
+  transition: background 0.2s;
+}
+.theme-toggle:hover { background: var(--border); }
+
+/* Progress bar */
+.progress-container {
+  background: var(--bg3);
+  border-radius: 8px;
+  height: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 8px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+.progress-text {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+/* Course selection */
+.course-select { text-align: center; padding: 40px 20px; }
+.course-select h2 { font-size: 1.8rem; margin-bottom: 8px; }
+.course-select p { color: var(--text2); margin-bottom: 32px; font-size: 1.05rem; }
+.course-btn {
+  display: block;
+  width: 100%;
+  padding: 18px 24px;
+  margin-bottom: 14px;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.course-btn:hover {
+  border-color: var(--accent);
+  background: var(--bg3);
+  transform: translateY(-1px);
+}
+.course-btn .course-code { color: var(--accent); }
+.course-btn .course-desc {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+/* Mode selection */
+.mode-select { text-align: center; }
+.mode-select h2 { font-size: 1.4rem; margin-bottom: 6px; }
+.mode-select .subtitle { color: var(--text2); margin-bottom: 24px; }
+.mode-btn {
+  display: block;
+  width: 100%;
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.mode-btn.secondary {
+  background: var(--bg2);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+.mode-btn.secondary:hover { border-color: var(--accent); }
+.back-link {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.9rem;
+  border: none;
+  background: none;
+  text-decoration: underline;
+}
+
+/* Question */
+.q-tier {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  background: var(--bg3);
+  color: var(--text2);
+}
+.q-number {
+  font-size: 0.9rem;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.q-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.q-text .MathJax { font-size: 1em !important; }
+
+/* Options */
+.option-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  line-height: 1.5;
+}
+.option-btn:hover:not(.disabled) {
+  border-color: var(--accent);
+  background: var(--bg3);
+}
+.option-btn.disabled { cursor: default; opacity: 0.85; }
+.option-btn.correct {
+  border-color: var(--correct) !important;
+  background: var(--correct-bg) !important;
+  opacity: 1 !important;
+}
+.option-btn.wrong {
+  border-color: var(--wrong) !important;
+  background: var(--wrong-bg) !important;
+  opacity: 1 !important;
+}
+.option-letter {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--bg3);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.option-btn.correct .option-letter { background: var(--correct); color: #fff; }
+.option-btn.wrong .option-letter { background: var(--wrong); color: #fff; }
+.option-content { display: flex; align-items: flex-start; }
+.option-text { flex: 1; }
+
+/* Feedback */
+.feedback {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  display: none;
+}
+.feedback.correct-fb {
+  background: var(--correct-bg);
+  border: 1px solid var(--correct);
+}
+.feedback.wrong-fb {
+  background: var(--wrong-bg);
+  border: 1px solid var(--wrong);
+}
+.feedback .fb-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+.feedback .fb-explanation {
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Next button */
+.next-btn {
+  display: none;
+  width: 100%;
+  padding: 14px;
+  margin-top: 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.next-btn:hover { background: var(--accent-hover); }
+
+/* Summary */
+.summary { text-align: center; }
+.summary h2 { font-size: 1.6rem; margin-bottom: 8px; }
+.score-display {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 16px 0;
+}
+.score-pct {
+  font-size: 1.2rem;
+  color: var(--text2);
+  margin-bottom: 24px;
+}
+.score-bar-container {
+  background: var(--bg3);
+  border-radius: 10px;
+  height: 14px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.score-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease;
+}
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.summary-actions button {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.restart-btn { background: var(--accent); color: #fff; }
+.restart-btn:hover { background: var(--accent-hover); }
+.switch-btn { background: var(--bg2); color: var(--text); border: 2px solid var(--border) !important; }
+.switch-btn:hover { border-color: var(--accent) !important; }
+
+/* Review list */
+.review-list { text-align: left; }
+.review-item {
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+}
+.review-item.review-correct { border-left: 4px solid var(--correct); }
+.review-item.review-wrong { border-left: 4px solid var(--wrong); }
+.review-q {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+.review-detail {
+  font-size: 0.85rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.review-detail strong { color: var(--text); }
+.review-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+.filter-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.filter-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  .card { padding: 18px; }
+  .course-select h2 { font-size: 1.4rem; }
+  .q-text { font-size: 1rem; }
+  .option-btn { padding: 12px 14px; font-size: 0.9rem; }
+  .summary-actions { flex-direction: column; }
+  .score-display { font-size: 2.4rem; }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.3s ease; }
+
+/* Hide screens */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1 id="header-title">📝 CMPE Exam Prep</h1>
+    <div class="header-right">
+      <div class="timer-display" id="timer-display" style="display:none">
+        <span id="total-timer">00:00</span>
+        <span class="q-timer" id="q-timer">Q: 00:00</span>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
+    </div>
+  </div>
+
+  <!-- Screen 1: Course Selection -->
+  <div id="screen-course" class="screen active">
+    <div class="card course-select fade-in">
+      <h2>Choose Your Course</h2>
+      <p>Select a course to start practicing</p>
+      <button class="course-btn" onclick="selectCourse('cmpe260')">
+        <span class="course-code">CMPE 260</span> — Reinforcement Learning
+        <span class="course-desc">100 questions · Modules 9–17 · TRPO, PPO, DDPG, SAC, A3C & more</span>
+      </button>
+      <button class="course-btn" onclick="selectCourse('cmpe256')">
+        <span class="course-code">CMPE 256</span> — Recommender Systems
+        <span class="course-desc">100 questions · CF, MF, Deep Learning, Fairness, Bandits & more</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Mode Selection -->
+  <div id="screen-mode" class="screen">
+    <div class="card mode-select fade-in">
+      <h2 id="mode-title"></h2>
+      <p class="subtitle" id="mode-subtitle"></p>
+      <button class="mode-btn" onclick="startQuiz(100)">📋 All 100 Questions (Shuffled)</button>
+      <button class="mode-btn secondary" onclick="startQuiz(25)">⚡ Quick 25 (Random)</button>
+      <button class="mode-btn secondary" onclick="startQuiz(10)">🎯 Quick 10 (Random)</button>
+      <button class="back-link" onclick="showScreen('screen-course')">← Back to course selection</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Quiz -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text">
+      <span id="progress-label">Question 1 of 100</span>
+      <span id="score-label">Score: 0/0</span>
+    </div>
+    <div class="card fade-in" id="question-card">
+      <span class="q-tier" id="q-tier"></span>
+      <div class="q-number" id="q-number"></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="options-container"></div>
+      <div class="feedback" id="feedback">
+        <div class="fb-title" id="fb-title"></div>
+        <div class="fb-explanation" id="fb-explanation"></div>
+      </div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary -->
+  <div id="screen-summary" class="screen">
+    <div class="card summary fade-in">
+      <h2>Quiz Complete! 🎉</h2>
+      <div class="score-display" id="final-score"></div>
+      <div class="score-pct" id="final-pct"></div>
+      <div class="score-bar-container">
+        <div class="score-bar" id="score-bar"></div>
+      </div>
+      <div class="summary-actions">
+        <button class="restart-btn" onclick="restartQuiz()">🔄 Restart</button>
+        <button class="switch-btn" onclick="showScreen('screen-course')">📚 Switch Course</button>
+      </div>
+      <div class="review-filter">
+        <button class="filter-btn active" data-filter="all" onclick="filterReview('all', this)">All</button>
+        <button class="filter-btn" data-filter="wrong" onclick="filterReview('wrong', this)">❌ Wrong Only</button>
+        <button class="filter-btn" data-filter="correct" onclick="filterReview('correct', this)">✅ Correct Only</button>
+      </div>
+      <div class="review-list" id="review-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== QUESTION DATA =====
+const QUESTIONS = {
+  cmpe260: [{"num": 1, "question": "What is the primary problem that TRPO addresses in vanilla policy gradient?", "options": {"A": "Vanilla PG cannot handle discrete action spaces", "B": "Vanilla PG requires a model of the environment", "C": "Large policy updates can cause catastrophic performance collapse", "D": "Vanilla PG cannot use neural network function approximators"}, "answer": "C", "explanation": "Vanilla PG is highly sensitive to step size. A learning rate that is too large can cause the policy to change drastically, leading to catastrophic performance drops. Since the data distribution depends on the policy, a bad update corrupts future data collection. TRPO constrains updates via a KL divergence trust region to prevent this.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 2, "question": "The surrogate objective in TRPO is:", "options": {"A": "$$L(\\theta) = \\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot Q^\\pi(s,a)]$$", "B": "$$L(\\theta) = \\mathbb{E}\\!\\left[\\frac{\\pi_\\theta(a|s)}{\\pi_{\\theta_{old}}(a|s)} \\hat{A}(s,a)\\right]$$", "C": "$$L(\\theta) = \\mathbb{E}[\\pi_\\theta(a|s) \\cdot V^\\pi(s)]$$", "D": "$$L(\\theta) = \\mathbb{E}[\\log \\pi_\\theta(a|s) \\cdot r_t]$$"}, "answer": "B", "explanation": "TRPO maximizes the surrogate objective $$L(\\theta) = \\mathbb{E}[r_t(\\theta) \\hat{A}_t]$$ where $$r_t(\\theta) = \\frac{\\pi_\\theta(a|s)}{\\pi_{\\theta_{old}}(a|s)}$$ is the probability ratio. This objective provides a local approximation to the true performance improvement and is maximized subject to a KL divergence constraint $$\\mathbb{E}[D_{KL}(\\pi_{\\theta_{old}} \\| \\pi_\\theta)] \\leq \\delta$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 3, "question": "In PPO's clipped objective, when $$\\hat{A}_t > 0$$ and $$r_t(\\theta) > 1 + \\epsilon$$, the gradient is:", "options": {"A": "Doubled to accelerate learning", "B": "Unchanged from the unclipped objective", "C": "Zero \u2014 the clipping prevents further increase in $$r_t$$", "D": "Reversed to decrease the probability of the action"}, "answer": "C", "explanation": "When $$\\hat{A}_t > 0$$ (good action) and $$r_t > 1+\\epsilon$$, the clipped term $$\\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon)\\hat{A}_t = (1+\\epsilon)\\hat{A}_t$$ becomes a constant. The $$\\min$$ selects this constant (since $$(1+\\epsilon)\\hat{A}_t < r_t \\hat{A}_t$$), so the gradient w.r.t. $$\\theta$$ is zero. This prevents the policy from moving too far.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 4, "question": "The Fisher Information Matrix (FIM) $$F$$ is defined as:", "options": {"A": "$$F = \\mathbb{E}[\\nabla_\\theta \\pi_\\theta \\cdot (\\nabla_\\theta \\pi_\\theta)^\\top]$$", "B": "$$F = \\mathbb{E}[\\nabla_\\theta V^\\pi \\cdot (\\nabla_\\theta V^\\pi)^\\top]$$", "C": "$$F = \\nabla_\\theta^2 J(\\theta)$$", "D": "$$F = \\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta \\cdot (\\nabla_\\theta \\log \\pi_\\theta)^\\top]$$"}, "answer": "D", "explanation": "The Fisher Information Matrix is $$F = \\mathbb{E}_{s,a}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot (\\nabla_\\theta \\log \\pi_\\theta(a|s))^\\top]$$. It captures the curvature of the policy distribution in parameter space and is equivalent to the Hessian of the KL divergence at $$\\theta_{old}$$. It defines the geometry of the statistical manifold of policies.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 5, "question": "Why does TRPO use conjugate gradient (CG) instead of directly computing $$F^{-1}\\nabla J$$?", "options": {"A": "The Fisher matrix is too large to store or invert explicitly; CG only requires matrix-vector products $$Fv$$", "B": "CG guarantees convergence in one iteration", "C": "Direct inversion would violate the KL constraint", "D": "CG provides a more accurate solution than direct inversion"}, "answer": "A", "explanation": "For a neural network with $$n$$ parameters, $$F$$ is an $$n \\times n$$ matrix. Storing it requires $$O(n^2)$$ memory and inverting it costs $$O(n^3)$$ \u2014 both prohibitive for large networks. CG iteratively approximates $$F^{-1}g$$ using only matrix-vector products $$Fv$$, which can be computed efficiently via backpropagation.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 6, "question": "The probability ratio $$r_t(\\theta)$$ in PPO is defined as:", "options": {"A": "$$\\frac{Q^\\pi(s_t, a_t)}{V^\\pi(s_t)}$$", "B": "$$\\frac{\\pi_\\theta(a_t|s_t)}{\\pi_{\\theta_{old}}(a_t|s_t)}$$", "C": "$$\\frac{\\pi_{\\theta_{old}}(a_t|s_t)}{\\pi_\\theta(a_t|s_t)}$$", "D": "$$\\frac{\\nabla_\\theta \\pi_\\theta(a_t|s_t)}{\\pi_\\theta(a_t|s_t)}$$"}, "answer": "B", "explanation": "The probability ratio $$r_t(\\theta) = \\frac{\\pi_\\theta(a_t|s_t)}{\\pi_{\\theta_{old}}(a_t|s_t)}$$ measures how much more (or less) likely the current policy is to take action $$a_t$$ compared to the old policy. When $$r_t = 1$$, the policies agree; $$r_t > 1$$ means the action became more likely; $$r_t < 1$$ means less likely.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 7, "question": "What is the typical value of $$\\epsilon$$ in PPO's clipping?", "options": {"A": "0.5\u20131.0", "B": "0.01\u20130.001", "C": "0.1\u20130.2", "D": "1.0\u20132.0"}, "answer": "C", "explanation": "The standard value is $$\\epsilon = 0.2$$ (from the original PPO paper), with $$\\epsilon = 0.1$$ also commonly used. This means the probability ratio $$r_t$$ is clipped to $$[0.8, 1.2]$$ (or $$[0.9, 1.1]$$), limiting how much the policy can change per update.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 8, "question": "What advantage does PPO have over TRPO in practice?", "options": {"A": "PPO is much simpler to implement \u2014 it uses first-order optimization with clipping instead of conjugate gradient and line search", "B": "PPO provides stronger theoretical monotonic improvement guarantees", "C": "PPO always converges faster than TRPO", "D": "PPO can handle continuous actions while TRPO cannot"}, "answer": "A", "explanation": "TRPO requires computing Fisher-vector products, running conjugate gradient iterations, and performing line search \u2014 all complex to implement and computationally expensive. PPO achieves similar performance using simple clipping of the surrogate objective, requiring only standard first-order optimizers (e.g., Adam).", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 9, "question": "In ACKTR, K-FAC approximates the Fisher matrix as $$F \\approx A \\otimes S$$ per layer. What are $$A$$ and $$S$$?", "options": {"A": "$$A$$ = activation function derivatives; $$S$$ = softmax probabilities", "B": "$$A$$ = advantage estimates; $$S$$ = state features", "C": "$$A$$ = second moments of layer inputs; $$S$$ = second moments of output gradients", "D": "$$A$$ = actor parameters; $$S$$ = critic parameters"}, "answer": "C", "explanation": "K-FAC (Kronecker-Factored Approximate Curvature) approximates the Fisher matrix of each layer as a Kronecker product $$F_l \\approx A_l \\otimes S_l$$, where $$A_l = \\mathbb{E}[a_l a_l^\\top]$$ captures second moments of the layer's input activations and $$S_l = \\mathbb{E}[g_l g_l^\\top]$$ captures second moments of the backpropagated gradients.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 10, "question": "What two key techniques does DDPG borrow from DQN?", "options": {"A": "Entropy regularization and clipped objectives", "B": "Importance sampling and GAE", "C": "Double Q-learning and dueling architecture", "D": "Replay buffer and target networks"}, "answer": "D", "explanation": "DDPG adapts DQN's replay buffer (for off-policy learning and decorrelation) and target networks (for stable Bellman targets). However, DDPG uses *soft* target updates ($$\\tau$$-averaging) rather than DQN's periodic hard copy.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 11, "question": "In DDPG, the actor network outputs:", "options": {"A": "A probability distribution over discrete actions", "B": "A single deterministic action $$\\mu_\\theta(s)$$", "C": "Q-values for all possible actions", "D": "A stochastic policy parameterized as a Gaussian"}, "answer": "B", "explanation": "DDPG uses a deterministic policy $$\\mu_\\theta(s)$$ that directly maps states to a specific continuous action. This is in contrast to stochastic policies that output distributions. Exploration is handled separately via added noise (e.g., Ornstein-Uhlenbeck process).", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 12, "question": "In TD3's clipped double Q-learning, the target value uses:", "options": {"A": "The average of two Q-networks' predictions", "B": "The maximum of two Q-networks' predictions", "C": "The minimum of two Q-networks' predictions", "D": "A single Q-network with dropout for uncertainty"}, "answer": "C", "explanation": "TD3 maintains two independent critic networks and uses $$y = r + \\gamma \\min(Q_1'(s', \\tilde{a}), Q_2'(s', \\tilde{a}))$$. Taking the minimum is less likely to select an overestimated value, providing a pessimistic (lower) bound that counteracts upward bias.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 13, "question": "TD3 delays policy updates. What is the typical update ratio?", "options": {"A": "The critic is updated once for every two actor updates", "B": "The actor and critic are updated at the same frequency", "C": "The actor is updated once for every ten critic updates", "D": "The actor is updated once for every two critic updates"}, "answer": "D", "explanation": "TD3 typically updates the policy (actor) and target networks every $$d = 2$$ critic updates. This allows the critic's value estimates to stabilize and become more accurate before the actor uses them, reducing the propagation of estimation errors into the policy.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 14, "question": "SAC is based on which reinforcement learning framework?", "options": {"A": "Maximum entropy reinforcement learning", "B": "Inverse reinforcement learning", "C": "Model-based reinforcement learning", "D": "Hierarchical reinforcement learning"}, "answer": "A", "explanation": "SAC is built on the maximum entropy RL framework, where the agent maximizes both expected cumulative reward and the entropy of its policy: $$\\pi^* = \\arg\\max_\\pi \\sum_t \\mathbb{E}[r_t + \\alpha \\mathcal{H}(\\pi(\\cdot|s_t))]$$. This encourages exploration and leads to more robust policies.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 15, "question": "The reparameterization trick in SAC allows:", "options": {"A": "The policy to be deterministic during training and stochastic during evaluation", "B": "Gradients to flow through the stochastic sampling step via backpropagation", "C": "The critic to be updated without a target network", "D": "Actions to be discretized for use with DQN-style updates"}, "answer": "B", "explanation": "The reparameterization trick expresses the sampled action as $$a = \\mu_\\theta(s) + \\sigma_\\theta(s) \\cdot \\epsilon$$ where $$\\epsilon \\sim \\mathcal{N}(0, I)$$. By separating the stochasticity ($$\\epsilon$$) from the learnable parameters ($$\\mu, \\sigma$$), gradients can flow through the sampling operation, enabling end-to-end training.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 16, "question": "The temperature parameter $$\\alpha$$ in SAC controls:", "options": {"A": "The learning rate of the critic network", "B": "The soft update rate for target networks", "C": "The clipping range for importance sampling ratios", "D": "The trade-off between reward maximization and entropy maximization"}, "answer": "D", "explanation": "$$\\alpha$$ (temperature) weights the entropy bonus relative to the reward: higher $$\\alpha$$ \u2192 more exploration (higher entropy), lower $$\\alpha$$ \u2192 more exploitation (greedy behavior). SAC can automatically tune $$\\alpha$$ by optimizing it to maintain a target entropy $$\\bar{\\mathcal{H}}$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 17, "question": "Automatic temperature tuning in SAC optimizes $$\\alpha$$ to:", "options": {"A": "Maintain the policy entropy at a target value $$\\bar{\\mathcal{H}}$$", "B": "Minimize the critic's TD error", "C": "Maximize the actor's expected return", "D": "Match the KL divergence between old and new policies"}, "answer": "A", "explanation": "SAC formulates temperature tuning as a constrained optimization: minimize $$\\alpha$$ subject to the policy entropy being at least $$\\bar{\\mathcal{H}}$$ (typically set to $$-\\dim(\\mathcal{A})$$). The dual variable $$\\alpha$$ is adjusted so that when entropy is too low, $$\\alpha$$ increases (more exploration), and when entropy is too high, $$\\alpha$$ decreases.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 18, "question": "What is the core novel idea in A3C for stabilizing deep reinforcement learning?", "options": {"A": "Using a replay buffer with prioritized sampling", "B": "Applying trust region constraints to policy updates", "C": "Using asynchronous gradient descent with multiple parallel actors", "D": "Training a world model for planning"}, "answer": "C", "explanation": "A3C's key innovation is running multiple actor-learner threads in parallel, each interacting with its own environment copy. The diverse experiences from different workers naturally decorrelate the training data, stabilizing learning without needing a replay buffer.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 19, "question": "A3C eliminates the need for which common DQN component?", "options": {"A": "Neural network function approximators", "B": "A replay buffer", "C": "A discount factor $$\\gamma$$", "D": "Gradient descent optimization"}, "answer": "B", "explanation": "DQN requires a replay buffer to decorrelate sequential experiences. A3C achieves the same decorrelation through parallel actors exploring different environments simultaneously, making the replay buffer unnecessary. This also means A3C is naturally on-policy.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 20, "question": "The \"stale gradients\" problem in A3C occurs because:", "options": {"A": "The replay buffer contains outdated transitions", "B": "The learning rate decays too quickly", "C": "By the time a worker applies its gradient, the global parameters have already changed", "D": "The entropy bonus becomes too large over time"}, "answer": "C", "explanation": "In asynchronous training, while worker A computes its gradient, workers B, C, etc. may have already updated the global parameters. When worker A finally applies its gradient, it was computed for outdated parameters, making it a \"stale\" gradient that may point in a suboptimal direction.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 21, "question": "A2C differs from A3C primarily in that:", "options": {"A": "A2C uses a replay buffer while A3C does not", "B": "A2C uses a different loss function than A3C", "C": "A2C can only handle discrete action spaces", "D": "A2C uses a coordinator that waits for all workers before updating"}, "answer": "D", "explanation": "A2C (synchronous) introduces a coordinator that collects experience from ALL workers before performing a single batched update to the global network. This eliminates stale gradients (since all workers use the same global parameters) at the cost of slightly slower wall-clock time per update.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 22, "question": "The soft target update rule $$\\theta' \\leftarrow \\tau\\theta + (1-\\tau)\\theta'$$ with $$\\tau = 0.005$$ means:", "options": {"A": "The target network is replaced entirely every 200 steps", "B": "The main network copies 99.5% of the target network's weights", "C": "The learning rate is set to 0.005", "D": "The target network changes very slowly, tracking the main network"}, "answer": "D", "explanation": "With $$\\tau = 0.005$$, only 0.5% of the main network's weights are blended into the target at each step. This makes the target network change very slowly and smoothly, providing stable training targets for the critic's Bellman equation.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 23, "question": "Why does DDPG use Ornstein-Uhlenbeck (OU) noise for exploration?", "options": {"A": "OU noise has zero mean and is therefore unbiased", "B": "OU noise is computationally cheaper than Gaussian noise", "C": "OU noise guarantees convergence to the optimal policy", "D": "OU noise is temporally correlated, which is effective for physical control tasks with inertia"}, "answer": "D", "explanation": "The OU process generates temporally correlated noise, meaning consecutive noise values are similar. This produces smoother exploration trajectories, which is beneficial for physical systems with momentum/inertia. Simple i.i.d. Gaussian noise would produce jerky, unrealistic exploration.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 24, "question": "Target policy smoothing in TD3 adds clipped noise to:", "options": {"A": "The states sampled from the replay buffer", "B": "The action selected by the target actor when computing Q-targets", "C": "The rewards used in the Bellman target", "D": "The gradients during backpropagation"}, "answer": "B", "explanation": "TD3 computes $$\\tilde{a} = \\mu_{\\theta'}(s') + \\text{clip}(\\epsilon, -c, c)$$ where $$\\epsilon \\sim \\mathcal{N}(0, \\sigma)$$. This adds small, clipped random noise to the target actor's action before feeding it to the target critics. This regularizes the Q-function by smoothing it over similar actions, preventing the policy from exploiting narrow peaks.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 25, "question": "Unlike DDPG and TD3, SAC's policy is:", "options": {"A": "Stochastic, outputting a Gaussian distribution over actions", "B": "On-policy and cannot use a replay buffer", "C": "Model-based and requires environment dynamics", "D": "Deterministic with added Gaussian noise"}, "answer": "A", "explanation": "SAC uses a stochastic policy that outputs the mean $$\\mu$$ and standard deviation $$\\sigma$$ of a Gaussian distribution. Actions are sampled from this distribution (via reparameterization), and a tanh squashing function bounds them. This contrasts with DDPG/TD3's deterministic policies.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 26, "question": "The KL divergence constraint in TRPO, $$\\mathbb{E}[D_{KL}(\\pi_{\\theta_{old}} \\| \\pi_\\theta)] \\leq \\delta$$, ensures:", "options": {"A": "The policy converges to the optimal policy in one step", "B": "The new policy does not deviate too far from the old policy, enabling monotonic improvement guarantees", "C": "The gradient estimate is unbiased", "D": "The value function approximation error is bounded"}, "answer": "B", "explanation": "The KL constraint limits how much the policy distribution can change in a single update. This is crucial because the surrogate objective $$L(\\theta)$$ is only a good approximation of the true objective when $$\\pi_\\theta$$ is close to $$\\pi_{\\theta_{old}}$$. The constraint provides theoretical monotonic improvement guarantees (up to approximation errors).", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 27, "question": "What does ACKTR apply the natural gradient to, unlike standard Actor-Critic?", "options": {"A": "Both the actor and the critic networks", "B": "Only the actor network", "C": "Only the critic network", "D": "Neither \u2014 it uses standard SGD for both"}, "answer": "A", "explanation": "A key innovation of ACKTR is applying K-FAC-based natural gradient updates to **both** the actor and the critic. Standard Actor-Critic typically uses natural gradient (or trust region) only for the actor. By also using natural gradient for the critic, ACKTR achieves better sample efficiency and more stable value function learning.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 28, "question": "PPO's clipped objective is described as a \"pessimistic bound\" because:", "options": {"A": "It always underestimates the true return", "B": "It assumes the worst-case environment dynamics", "C": "It takes the minimum of the clipped and unclipped objectives, preventing overestimation of improvement", "D": "It uses a lower bound on the KL divergence"}, "answer": "C", "explanation": "The $$\\min$$ in $$L^{CLIP} = \\mathbb{E}[\\min(r_t \\hat{A}_t, \\text{clip}(r_t, 1-\\epsilon, 1+\\epsilon)\\hat{A}_t)]$$ creates a lower bound (pessimistic estimate) on the unclipped objective. This ensures we only take credit for improvement that is \"safe\" \u2014 within the trust region defined by the clipping.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 29, "question": "In PPO's adaptive KL penalty variant, the coefficient $$\\beta$$ is:", "options": {"A": "Adjusted dynamically: increased if KL is too large, decreased if KL is too small", "B": "Set to the inverse of the learning rate", "C": "Always increasing to ensure convergence", "D": "Fixed throughout training"}, "answer": "A", "explanation": "In PPO-penalty, $$\\beta$$ adapts based on the observed KL divergence after each update. If $$D_{KL} > 1.5 \\cdot d_{targ}$$, $$\\beta$$ is doubled (penalize more). If $$D_{KL} < d_{targ}/1.5$$, $$\\beta$$ is halved (allow larger steps). This adaptive scheme automatically tunes the trust region size.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 30, "question": "The Kronecker product approximation in K-FAC reduces the computational cost of inverting the Fisher matrix from $$O(n^3)$$ to approximately:", "options": {"A": "$$O(n^2)$$ per layer", "B": "$$O(n^{3/2})$$ per layer", "C": "$$O(n \\log n)$$ per layer", "D": "$$O(n)$$ per layer"}, "answer": "B", "explanation": "For a layer with $$n$$ parameters (input dim $$m$$, output dim $$k$$, so $$n = mk$$), K-FAC factors the Fisher as $$A \\otimes S$$ where $$A$$ is $$m \\times m$$ and $$S$$ is $$k \\times k$$. Inverting these separately costs $$O(m^3) + O(k^3)$$, which is roughly $$O(n^{3/2})$$ when $$m \\approx k \\approx \\sqrt{n}$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 31, "question": "What does the Policy Gradient Theorem express $$\\nabla_\\theta J(\\theta)$$ as?", "options": {"A": "$$\\mathbb{E}_{\\pi_\\theta}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot Q^\\pi(s,a)]$$", "B": "$$\\mathbb{E}[\\nabla_\\theta V^\\pi(s)]$$", "C": "$$\\mathbb{E}[\\nabla_\\theta Q^\\pi(s,a)]$$", "D": "$$\\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot r_t]$$"}, "answer": "A", "explanation": "The Policy Gradient Theorem states $$\\nabla_\\theta J(\\theta) = \\mathbb{E}_{\\pi_\\theta}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot Q^\\pi(s,a)]$$. The key insight is that the gradient of the objective can be expressed as an expectation of the score function weighted by the action-value function, without requiring the derivative of the state distribution.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 32, "question": "In REINFORCE, what replaces $$Q^\\pi(s,a)$$ in the policy gradient estimate?", "options": {"A": "The TD error $$\\delta_t$$", "B": "The value function $$V(s_t)$$", "C": "The advantage function $$A(s_t, a_t)$$", "D": "The sampled return $$G_t = \\sum_{k=0}^{T-t} \\gamma^k r_{t+k}$$"}, "answer": "D", "explanation": "REINFORCE is a Monte Carlo policy gradient method. It uses the actual sampled return $$G_t$$ from complete episodes as an unbiased estimate of $$Q^\\pi(s_t, a_t)$$. This makes it unbiased but high variance since it relies on full trajectory samples.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 33, "question": "Why does subtracting a state-dependent baseline $$b(s)$$ NOT introduce bias into the policy gradient?", "options": {"A": "Because $$b(s)$$ is always zero in expectation", "B": "Because the baseline cancels out during backpropagation", "C": "Because $$\\sum_a \\nabla_\\theta \\pi_\\theta(a|s) = 0$$, so $$\\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot b(s)] = 0$$", "D": "Because the baseline is subtracted from both numerator and denominator"}, "answer": "C", "explanation": "The proof relies on $$\\sum_a \\nabla_\\theta \\pi_\\theta(a|s) = \\nabla_\\theta \\sum_a \\pi_\\theta(a|s) = \\nabla_\\theta 1 = 0$$. Therefore $$\\mathbb{E}_a[\\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot b(s)] = b(s) \\sum_a \\nabla_\\theta \\pi_\\theta(a|s) = 0$$. The baseline term vanishes regardless of $$b(s)$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 34, "question": "The TD error $$\\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$$ in Actor-Critic serves as an estimate of:", "options": {"A": "The advantage function $$A^\\pi(s_t, a_t)$$", "B": "The state-value function $$V^\\pi(s_t)$$", "C": "The reward function $$R(s_t, a_t)$$", "D": "The policy gradient $$\\nabla_\\theta J(\\theta)$$"}, "answer": "A", "explanation": "The TD error $$\\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$$ is an unbiased estimate of the advantage $$A^\\pi(s_t, a_t) = Q^\\pi(s_t, a_t) - V^\\pi(s_t)$$ when $$V$$ is the true value function. In practice with an approximate $$V_w$$, it provides a biased but low-variance estimate.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 35, "question": "Which statement about REINFORCE is FALSE?", "options": {"A": "It requires complete episodes to compute returns", "B": "It has low variance due to Monte Carlo sampling", "C": "It is an on-policy algorithm", "D": "It uses no value function critic"}, "answer": "B", "explanation": "REINFORCE has **high** variance, not low variance, precisely because it uses Monte Carlo sampling of full returns. The variance comes from the stochasticity of entire trajectories. This high variance is the primary motivation for introducing baselines and Actor-Critic methods.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 36, "question": "The log-derivative trick states that:", "options": {"A": "$$\\log \\nabla_\\theta \\pi_\\theta = \\pi_\\theta \\cdot \\nabla_\\theta \\pi_\\theta$$", "B": "$$\\nabla_\\theta \\log \\pi_\\theta = \\frac{1}{\\pi_\\theta}$$", "C": "$$\\nabla_\\theta J = \\log \\pi_\\theta \\cdot \\nabla_\\theta \\pi_\\theta$$", "D": "$$\\nabla_\\theta \\pi_\\theta = \\pi_\\theta \\cdot \\nabla_\\theta \\log \\pi_\\theta$$"}, "answer": "D", "explanation": "The log-derivative trick uses the chain rule: $$\\nabla_\\theta \\log \\pi_\\theta = \\frac{\\nabla_\\theta \\pi_\\theta}{\\pi_\\theta}$$, which rearranges to $$\\nabla_\\theta \\pi_\\theta = \\pi_\\theta \\cdot \\nabla_\\theta \\log \\pi_\\theta$$. This converts a gradient of a probability (hard to sample) into an expectation under that probability (easy to sample via Monte Carlo).", "tier": "Tier 2 \u2014 High Probability"}, {"num": 37, "question": "In GAE, $$\\hat{A}_t^{GAE(\\gamma,\\lambda)} = \\sum_{l=0}^{\\infty} (\\gamma\\lambda)^l \\delta_{t+l}$$. When $$\\lambda = 0$$:", "options": {"A": "The advantage equals the Monte Carlo return minus the baseline", "B": "The advantage equals the full trajectory return", "C": "The advantage reduces to the 1-step TD error $$\\delta_t$$", "D": "The advantage is always zero"}, "answer": "C", "explanation": "When $$\\lambda = 0$$, all terms with $$l > 0$$ vanish: $$\\hat{A}_t = \\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$$. This is the 1-step TD advantage \u2014 low variance but high bias. As $$\\lambda \\to 1$$, GAE approaches the Monte Carlo advantage (high variance, low bias).", "tier": "Tier 2 \u2014 High Probability"}, {"num": 38, "question": "GAE with $$\\lambda = 1$$ reduces to:", "options": {"A": "The Monte Carlo advantage estimate $$G_t - V(s_t)$$", "B": "The 1-step TD error $$\\delta_t$$", "C": "Zero for all states", "D": "The Q-function $$Q^\\pi(s_t, a_t)$$"}, "answer": "A", "explanation": "When $$\\lambda = 1$$, $$\\hat{A}_t^{GAE} = \\sum_{l=0}^{\\infty} \\gamma^l \\delta_{t+l}$$. The telescoping sum yields $$\\sum_{l=0}^{\\infty} \\gamma^l r_{t+l} - V(s_t) = G_t - V(s_t)$$, which is the Monte Carlo advantage. This has zero bias but high variance.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 39, "question": "The advantage function $$A^\\pi(s,a)$$ is defined as:", "options": {"A": "$$V^\\pi(s) - Q^\\pi(s,a)$$", "B": "$$Q^\\pi(s,a) + V^\\pi(s)$$", "C": "$$r(s,a) - V^\\pi(s)$$", "D": "$$Q^\\pi(s,a) - V^\\pi(s)$$"}, "answer": "D", "explanation": "The advantage function $$A^\\pi(s,a) = Q^\\pi(s,a) - V^\\pi(s)$$ measures how much better action $$a$$ is compared to the average action under policy $$\\pi$$ in state $$s$$. It has the property that $$\\mathbb{E}_{a \\sim \\pi}[A^\\pi(s,a)] = 0$$, making it effective for variance reduction.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 40, "question": "The primary advantage of Actor-Critic over REINFORCE is:", "options": {"A": "Actor-Critic is always unbiased", "B": "Actor-Critic has lower variance by using bootstrapped value estimates", "C": "Actor-Critic can handle continuous state spaces while REINFORCE cannot", "D": "Actor-Critic does not require a differentiable policy"}, "answer": "B", "explanation": "Actor-Critic replaces the high-variance Monte Carlo return $$G_t$$ with the TD error $$\\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$$, which bootstraps from the learned value function. This significantly reduces variance at the cost of introducing some bias. It also allows online, step-by-step updates.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 41, "question": "In the DDPG actor gradient, the chain rule is applied as:", "options": {"A": "$$\\nabla_\\theta J = \\nabla_\\theta \\log \\pi_\\theta(a|s) \\cdot Q(s,a)$$", "B": "$$\\nabla_\\theta J = \\nabla_\\theta Q(s, \\mu_\\theta(s))$$ directly without chain rule", "C": "$$\\nabla_\\theta J = \\nabla_a Q(s,a)|_{a=\\mu(s)} \\cdot \\nabla_\\theta \\mu_\\theta(s)$$", "D": "$$\\nabla_\\theta J = (G_t - V(s_t)) \\nabla_\\theta \\log \\pi_\\theta(a|s)$$"}, "answer": "C", "explanation": "The deterministic policy gradient theorem gives $$\\nabla_\\theta J = \\mathbb{E}[\\nabla_a Q(s,a)|_{a=\\mu_\\theta(s)} \\cdot \\nabla_\\theta \\mu_\\theta(s)]$$. This applies the chain rule: first compute how Q changes with action (critic gradient), then how the action changes with policy parameters (actor gradient).", "tier": "Tier 2 \u2014 High Probability"}, {"num": 42, "question": "In Behavior Cloning, the compounding error over a trajectory of length $$T$$ with per-step error $$\\epsilon$$ scales as:", "options": {"A": "$$O(\\epsilon T^2)$$", "B": "$$O(\\epsilon T)$$", "C": "$$O(\\epsilon \\sqrt{T})$$", "D": "$$O(\\epsilon \\log T)$$"}, "answer": "A", "explanation": "In BC, small errors cause the agent to drift into unfamiliar states, where it makes more errors. This cascading effect leads to quadratic compounding: $$O(\\epsilon T^2)$$. Each step's error affects all subsequent steps, creating a quadratic relationship with horizon length.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 43, "question": "What is the primary mechanism of Hindsight Experience Replay (HER)?", "options": {"A": "Using a prioritized replay buffer weighted by TD error", "B": "Training multiple policies in parallel for different goals", "C": "Augmenting the replay buffer with expert demonstrations", "D": "Relabeling failed trajectories with achieved goals so they become successful experiences"}, "answer": "D", "explanation": "HER's key insight is that a trajectory that failed to reach goal $$g$$ still successfully reached some other state $$g' = m(s_T)$$. By relabeling the goal, the agent learns from every trajectory, even failures, dramatically improving sample efficiency in sparse reward settings.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 44, "question": "DAGGER (Dataset Aggregation) improves upon Behavior Cloning by:", "options": {"A": "Using a larger neural network architecture", "B": "Iteratively collecting data under the learned policy and labeling it with the expert", "C": "Applying data augmentation to existing demonstrations", "D": "Training on more expert demonstrations without interaction"}, "answer": "B", "explanation": "DAGGER addresses distribution shift by running the learned policy to collect states the agent actually visits, then querying the expert for the correct actions at those states. This iterative process reduces the error bound from $$O(\\epsilon T^2)$$ to $$O(\\epsilon T)$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 45, "question": "In the A3C total loss $$L = L_\\pi + c_1 L_V - c_2 H(\\pi)$$, the entropy term has a negative sign because:", "options": {"A": "Entropy should be minimized to focus on the best action", "B": "It cancels out the policy gradient term", "C": "We want to maximize entropy (subtract it from the loss being minimized)", "D": "It represents a penalty for taking too many actions"}, "answer": "C", "explanation": "Since we minimize the total loss, subtracting the entropy term $$-c_2 H(\\pi)$$ is equivalent to maximizing entropy. This encourages the policy to maintain exploration. The coefficient $$c_2$$ (typically ~0.01) controls the strength of this exploration incentive.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 46, "question": "The n-step return $$G_t^{(n)} = \\sum_{i=0}^{n-1} \\gamma^i r_{t+i} + \\gamma^n V(s_{t+n})$$ combines:", "options": {"A": "Actual rewards for $$n$$ steps followed by a bootstrapped value estimate", "B": "Only Monte Carlo estimation with no bootstrapping", "C": "Only 1-step TD bootstrapping", "D": "Importance-weighted returns from a replay buffer"}, "answer": "A", "explanation": "The n-step return uses actual observed rewards for the first $$n$$ steps (reducing bias compared to 1-step TD) and then bootstraps from the value function $$V(s_{t+n})$$ at the end (reducing variance compared to full Monte Carlo). This provides a tunable bias-variance trade-off.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 47, "question": "Why does SAC NOT need target policy smoothing or delayed policy updates like TD3?", "options": {"A": "SAC's entropy regularization already provides sufficient smoothing of the Q-function", "B": "SAC updates the policy using Monte Carlo returns instead of bootstrapping", "C": "SAC uses a separate value network that eliminates the need for these tricks", "D": "SAC uses a model of the environment to plan ahead"}, "answer": "A", "explanation": "SAC's entropy bonus naturally smooths the Q-function landscape because the stochastic policy evaluates Q-values over a distribution of actions rather than at a single point. This inherent regularization prevents the policy from exploiting narrow peaks in Q, making TD3's explicit smoothing mechanisms unnecessary.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 48, "question": "The soft Bellman equation in SAC differs from the standard Bellman equation by:", "options": {"A": "Using n-step returns instead of 1-step bootstrapping", "B": "Subtracting $$\\alpha \\log \\pi(a'|s')$$ from the next-state Q-value", "C": "Replacing the discount factor with a learned parameter", "D": "Adding importance sampling corrections for off-policy data"}, "answer": "B", "explanation": "The soft Q-function target is $$y = r + \\gamma[\\min_{i} Q_{\\phi_i'}(s', a') - \\alpha \\log \\pi_\\theta(a'|s')]$$. The $$-\\alpha \\log \\pi$$ term penalizes low-entropy (deterministic) behavior in future states, encoding the maximum entropy objective directly into the Bellman backup.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 49, "question": "The natural gradient $$\\tilde{\\nabla}_\\theta J = F^{-1}\\nabla_\\theta J$$ differs from the standard gradient in that it:", "options": {"A": "Always has smaller magnitude than the standard gradient", "B": "Is only defined for discrete action spaces", "C": "Ignores the curvature of the loss landscape", "D": "Follows the steepest ascent direction in distribution space rather than parameter space"}, "answer": "D", "explanation": "The standard gradient $$\\nabla_\\theta J$$ is steepest ascent in Euclidean parameter space. The natural gradient $$F^{-1}\\nabla_\\theta J$$ is steepest ascent in the space of probability distributions, accounting for the geometry of the statistical manifold via the Fisher metric. This makes it invariant to reparameterization of $$\\theta$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 50, "question": "In DDPG, the critic is trained by minimizing:", "options": {"A": "The cross-entropy between predicted and target Q-values", "B": "The KL divergence between the policy and a Boltzmann distribution", "C": "The mean squared Bellman error: $$(Q_\\phi(s,a) - y_t)^2$$ where $$y_t = r + \\gamma Q_{\\phi'}(s', \\mu_{\\theta'}(s'))$$", "D": "The policy gradient loss weighted by the advantage"}, "answer": "C", "explanation": "The critic loss is $$L(\\phi) = \\frac{1}{N}\\sum_i (Q_\\phi(s_i, a_i) - y_i)^2$$ where $$y_i = r_i + \\gamma Q_{\\phi'}(s_i', \\mu_{\\theta'}(s_i'))$$. This is standard temporal difference learning with function approximation \u2014 minimizing the squared Bellman error using target networks for stability.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 51, "question": "The overestimation bias in actor-critic methods primarily arises from:", "options": {"A": "Using too large a replay buffer", "B": "Bootstrapping with noisy function approximation in the critic", "C": "The actor network having too many parameters", "D": "The discount factor $$\\gamma$$ being too close to 1"}, "answer": "B", "explanation": "When the critic bootstraps (uses its own estimates as targets), function approximation errors can accumulate. Since the max/argmax operations in policy improvement tend to select overestimated values, the bias compounds upward over training, leading to systematically inflated Q-values.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 52, "question": "For a Gaussian policy $$\\pi_\\theta(a|s) = \\mathcal{N}(\\mu_\\theta(s), \\sigma^2)$$, what is $$\\nabla_\\mu \\log \\pi_\\theta(a|s)$$?", "options": {"A": "$$\\frac{a - \\mu_\\theta(s)}{\\sigma^2}$$", "B": "$$\\frac{\\mu_\\theta(s) - a}{\\sigma}$$", "C": "$$\\frac{(a - \\mu_\\theta(s))^2}{2\\sigma^2}$$", "D": "$$-\\frac{a - \\mu_\\theta(s)}{\\sigma^2}$$"}, "answer": "A", "explanation": "For a Gaussian, $$\\log \\pi = -\\frac{(a-\\mu)^2}{2\\sigma^2} - \\log(\\sigma\\sqrt{2\\pi})$$. Taking the derivative w.r.t. $$\\mu$$: $$\\nabla_\\mu \\log \\pi = \\frac{a - \\mu}{\\sigma^2}$$. This means the gradient pushes $$\\mu$$ toward actions that received high returns and away from those with low returns.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 53, "question": "In GAIL, what role does the discriminator $$D(s,a)$$ play?", "options": {"A": "It predicts the next state given current state and action", "B": "It estimates the value function for the current policy", "C": "It distinguishes between expert and agent state-action pairs", "D": "It computes the KL divergence between policy distributions"}, "answer": "C", "explanation": "The GAIL discriminator is trained to classify whether a $$(s,a)$$ pair comes from the expert or the agent. The agent then uses $$\\log D(s,a)$$ as a reward signal, learning to generate behavior indistinguishable from the expert \u2014 analogous to the generator in a GAN.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 54, "question": "In Model-Based RL, the dynamics model learns:", "options": {"A": "The optimal policy directly from demonstrations", "B": "The value function for all state-action pairs", "C": "The reward function only", "D": "The transition function $$p(s'|s,a)$$ predicting next states from current states and actions"}, "answer": "D", "explanation": "The core of MBRL is learning a dynamics model that predicts how the environment transitions: given current state $$s$$ and action $$a$$, predict next state $$s'$$ (and optionally reward $$r$$). This model is then used for planning or generating synthetic experience.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 55, "question": "Why does standard off-policy RL (e.g., DQN, SAC) fail in the offline setting?", "options": {"A": "Off-policy algorithms require on-policy data to converge", "B": "The $$\\max_{a'} Q(s', a')$$ operator selects OOD actions with erroneously high Q-values, and bootstrapping amplifies these errors", "C": "The discount factor $$\\gamma$$ becomes unstable without new data", "D": "The replay buffer becomes too large for efficient sampling"}, "answer": "B", "explanation": "In offline RL, the $$\\max$$ in the Bellman update picks actions the agent has never seen in the dataset. The Q-network's predictions for these OOD actions are unreliable and often overestimated. Bootstrapping then propagates and amplifies these errors throughout the Q-function, leading to catastrophic overestimation.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 56, "question": "Which algorithm uses a stochastic policy among DDPG, TD3, and SAC?", "options": {"A": "SAC only \u2014 DDPG and TD3 use deterministic policies", "B": "All three use stochastic policies", "C": "DDPG only \u2014 it uses OU noise as part of the policy", "D": "TD3 and SAC both use stochastic policies"}, "answer": "A", "explanation": "DDPG and TD3 both use deterministic policies $$\\mu_\\theta(s)$$ with external noise for exploration. SAC is the only one with a truly stochastic policy that outputs a Gaussian distribution $$\\pi_\\theta(a|s) = \\mathcal{N}(\\mu_\\theta(s), \\sigma_\\theta^2(s))$$ and uses entropy maximization for exploration.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 57, "question": "How many critic networks does each algorithm use: DDPG, TD3, SAC?", "options": {"A": "DDPG: 2, TD3: 2, SAC: 1", "B": "DDPG: 2, TD3: 1, SAC: 2", "C": "DDPG: 1, TD3: 2, SAC: 2", "D": "DDPG: 1, TD3: 1, SAC: 2"}, "answer": "C", "explanation": "DDPG uses a single critic $$Q_\\phi(s,a)$$. TD3 introduced \"twin\" critics (two Q-networks) with clipped double Q-learning to combat overestimation. SAC adopted the same twin critic approach. The minimum of the two critics' predictions is used in the target computation.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 58, "question": "What is the key difference between TRPO and PPO in how they constrain policy updates?", "options": {"A": "TRPO uses gradient clipping; PPO uses weight decay", "B": "TRPO uses entropy regularization; PPO uses KL penalty", "C": "TRPO uses importance sampling; PPO uses on-policy data only", "D": "TRPO uses an explicit KL constraint with conjugate gradient; PPO uses implicit clipping of the probability ratio"}, "answer": "D", "explanation": "TRPO enforces a hard KL divergence constraint $$D_{KL} \\leq \\delta$$ solved via conjugate gradient + line search. PPO approximates this trust region by clipping the probability ratio $$r_t(\\theta)$$ to $$[1-\\epsilon, 1+\\epsilon]$$, achieving similar stability with much simpler first-order optimization.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 59, "question": "Compared to A3C, A2C typically provides:", "options": {"A": "Faster wall-clock training time per update", "B": "More consistent gradient updates due to synchronization", "C": "Lower memory usage", "D": "Better handling of continuous action spaces"}, "answer": "B", "explanation": "A2C's synchronous design ensures all workers compute gradients based on the same global parameters, eliminating the stale gradient problem. This produces more consistent, higher-quality gradient updates. In practice, A2C often matches or exceeds A3C's final performance despite slightly slower per-update speed.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 60, "question": "Which algorithm is generally considered the most robust among DDPG, TD3, and SAC?", "options": {"A": "SAC, because entropy regularization improves exploration and robustness", "B": "DDPG, because it uses the simplest architecture", "C": "TD3, because delayed updates prevent all instability", "D": "All three perform identically given enough hyperparameter tuning"}, "answer": "A", "explanation": "SAC is generally considered the most robust due to its entropy-regularized objective, which provides natural exploration, prevents premature convergence, and reduces sensitivity to hyperparameters. DDPG is known to be brittle, and while TD3 improves on DDPG, SAC's stochastic policy and automatic temperature tuning offer additional stability.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 61, "question": "What exploration strategy does each algorithm use: DDPG, TD3, SAC?", "options": {"A": "All three use \u03b5-greedy exploration", "B": "DDPG: entropy bonus, TD3: OU noise, SAC: Gaussian noise", "C": "DDPG: OU/Gaussian noise, TD3: Gaussian noise, SAC: entropy maximization", "D": "All three use Ornstein-Uhlenbeck noise"}, "answer": "C", "explanation": "DDPG uses externally added OU noise (or Gaussian noise) to the deterministic action. TD3 uses Gaussian noise added to actions. SAC uses entropy maximization \u2014 the stochastic policy naturally explores by maintaining high entropy, requiring no external noise injection.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 62, "question": "The three modifications TD3 makes to DDPG are:", "options": {"A": "Entropy bonus, automatic temperature tuning, reparameterization trick", "B": "Replay buffer, target networks, batch normalization", "C": "Natural gradient, K-FAC approximation, trust region", "D": "Clipped double Q-learning, delayed policy updates, target policy smoothing"}, "answer": "D", "explanation": "TD3 adds three specific fixes to DDPG: (1) **Twin critics** with clipped double Q (take min of two Q-networks), (2) **Delayed** actor updates (update actor every $$d=2$$ critic updates), (3) **Target policy smoothing** (add clipped noise to target actions). These address overestimation bias and policy exploitation of Q-function errors.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 63, "question": "A key hardware advantage of A3C over DQN is:", "options": {"A": "A3C requires fewer CPU cores than DQN", "B": "A3C can train effectively on a single multi-core CPU without a GPU", "C": "A3C can only run on specialized TPU hardware", "D": "A3C requires less RAM than any other RL algorithm"}, "answer": "B", "explanation": "A3C's parallel actor design maps naturally to CPU threads, with each worker running on a separate core. The original paper showed A3C training on a single multi-core CPU could match or exceed the wall-clock training speed of GPU-based DQN, making it more accessible and cost-effective.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 64, "question": "How does SAC handle the overestimation problem?", "options": {"A": "It uses two Q-networks and takes the minimum, similar to TD3", "B": "It uses a single Q-network with L2 regularization", "C": "It uses prioritized experience replay", "D": "It clips the Q-values to a predefined range"}, "answer": "A", "explanation": "Like TD3, SAC maintains two independent Q-networks $$Q_{\\phi_1}$$ and $$Q_{\\phi_2}$$ and uses $$\\min(Q_{\\phi_1'}, Q_{\\phi_2'})$$ in the target computation. This clipped double-Q technique reduces overestimation bias in the soft Q-function updates.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 65, "question": "Which statement about PPO-Clip vs PPO-Penalty is TRUE?", "options": {"A": "PPO-Penalty is simpler to implement than PPO-Clip", "B": "PPO-Clip uses an explicit KL divergence computation in its objective", "C": "PPO-Clip is generally preferred in practice due to better empirical performance and simplicity", "D": "PPO-Penalty uses gradient clipping instead of ratio clipping"}, "answer": "C", "explanation": "PPO-Clip is the more widely used variant. It avoids computing KL divergence entirely, using simple ratio clipping instead. PPO-Penalty requires computing KL divergence and adaptively tuning $$\\beta$$, adding complexity. Empirically, PPO-Clip performs comparably or better across most benchmarks.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 66, "question": "What is the key difference between DQN's exploration (\u03b5-greedy) and DDPG's exploration?", "options": {"A": "DQN uses Boltzmann exploration; DDPG uses count-based exploration", "B": "There is no difference; both use \u03b5-greedy", "C": "DQN explores by adding noise to Q-values; DDPG explores by adding noise to actions", "D": "DQN's \u03b5-greedy is state-independent; DDPG's noise is added to state-dependent actions"}, "answer": "D", "explanation": "DQN's \u03b5-greedy selects a random action with probability \u03b5 regardless of the state. DDPG adds noise (e.g., OU process) to the deterministic action $$\\mu_\\theta(s)$$, so exploration is centered around the current policy's state-dependent action. This produces more structured, policy-relevant exploration.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 67, "question": "Why is A3C particularly well-suited for combining with recurrent networks (LSTMs)?", "options": {"A": "A3C uses a replay buffer that stores hidden states", "B": "A3C is on-policy, so it naturally processes sequential trajectories without breaking temporal order", "C": "Recurrent networks require fewer parameters than feedforward networks", "D": "A3C's asynchronous updates are faster with recurrent networks"}, "answer": "B", "explanation": "On-policy methods like A3C process trajectories in temporal order, which is essential for maintaining LSTM hidden states. Off-policy methods like DQN sample random transitions from a replay buffer, breaking the temporal structure that recurrent networks need. A3C's sequential trajectory collection makes LSTM integration straightforward.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 68, "question": "ACKTR's main advantage over TRPO is:", "options": {"A": "ACKTR achieves similar trust-region benefits at much lower computational cost via K-FAC approximation", "B": "ACKTR provides stronger theoretical guarantees", "C": "ACKTR uses a simpler objective function", "D": "ACKTR does not require a critic network"}, "answer": "A", "explanation": "TRPO requires expensive conjugate gradient iterations and line search to approximate the natural gradient step. ACKTR uses K-FAC to efficiently approximate the Fisher matrix with Kronecker products, making natural gradient computation nearly as cheap as standard SGD while maintaining the sample efficiency benefits.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 69, "question": "In the soft value function of SAC, $$V(s) = \\mathbb{E}_{a \\sim \\pi}[Q(s,a) - \\alpha \\log \\pi(a|s)]$$. The $$-\\alpha \\log \\pi$$ term:", "options": {"A": "Penalizes actions with high Q-values", "B": "Reduces the learning rate for well-explored states", "C": "Rewards the policy for maintaining high entropy (randomness)", "D": "Clips the value function to prevent overestimation"}, "answer": "C", "explanation": "The term $$-\\alpha \\log \\pi(a|s)$$ is the entropy bonus. Since $$-\\log \\pi$$ is large when $$\\pi$$ is spread out (high entropy) and small when $$\\pi$$ is concentrated, this term rewards the policy for being more random. This encourages exploration and prevents premature convergence to deterministic behavior.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 70, "question": "Which of the following correctly ranks the algorithms by implementation complexity (simplest to most complex)?", "options": {"A": "TRPO < PPO < ACKTR", "B": "ACKTR < TRPO < PPO", "C": "PPO < TRPO < ACKTR", "D": "PPO < ACKTR < TRPO"}, "answer": "D", "explanation": "PPO is simplest \u2014 it uses standard first-order optimization with clipping. ACKTR is moderate \u2014 it requires K-FAC approximation of the Fisher matrix but avoids line search. TRPO is most complex \u2014 it requires conjugate gradient computation of $$F^{-1}g$$, Fisher-vector products, and backtracking line search.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 71, "question": "The A3C shared network architecture typically consists of:", "options": {"A": "Two completely separate networks for actor and critic", "B": "A common body with two output heads: one for policy $$\\pi(a|s)$$ and one for value $$V(s)$$", "C": "A single output head that produces both policy and value", "D": "A convolutional encoder followed by a recurrent decoder only"}, "answer": "B", "explanation": "A3C uses a shared network where convolutional or fully-connected layers form a common body, which then splits into two heads: a policy head outputting $$\\pi(a|s)$$ and a value head outputting $$V(s)$$. Sharing the body allows both heads to benefit from shared feature representations.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 72, "question": "Which statement about DDPG is FALSE?", "options": {"A": "DDPG can only be used with continuous action spaces", "B": "DDPG uses a replay buffer for experience storage", "C": "DDPG applies soft target updates with parameter $$\\tau$$", "D": "DDPG is an on-policy algorithm that requires fresh data for each update"}, "answer": "D", "explanation": "DDPG is an **off-policy** algorithm \u2014 it stores transitions in a replay buffer and learns from past experiences generated by older policies. This is one of its key advantages, enabling better sample efficiency. Options A, B, and C are all true statements about DDPG. (Note: while DDPG is designed for continuous actions, the FALSE statement is D.)", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 73, "question": "The entropy bonus $$H(\\pi) = -\\sum_a \\pi(a|s) \\log \\pi(a|s)$$ in A3C serves to:", "options": {"A": "Speed up convergence by making the policy more greedy", "B": "Reduce the memory footprint of the replay buffer", "C": "Encourage exploration by penalizing policies that are too deterministic", "D": "Ensure the value function is always positive"}, "answer": "C", "explanation": "The entropy bonus rewards policies with high entropy (more uniform action probabilities) and penalizes low-entropy (near-deterministic) policies. This prevents premature convergence to suboptimal deterministic policies and encourages continued exploration throughout training.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 74, "question": "In on-policy policy gradient methods, why must data be discarded after each policy update?", "options": {"A": "Because the data distribution changes when $$\\theta$$ changes, making old data off-distribution", "B": "To prevent overfitting to specific trajectories", "C": "Because the value function becomes invalid after each update", "D": "To save memory in the replay buffer"}, "answer": "A", "explanation": "On-policy methods require data sampled from the current policy $$\\pi_\\theta$$. After updating $$\\theta \\to \\theta'$$, old data was generated by $$\\pi_\\theta$$, not $$\\pi_{\\theta'}$$, making it off-distribution. Using stale data produces biased gradient estimates. This is why on-policy methods are sample-inefficient compared to off-policy methods.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 75, "question": "The value loss coefficient $$c_1 \\approx 0.5$$ in A3C is typically larger than the entropy coefficient $$c_2 \\approx 0.01$$ because:", "options": {"A": "The value function is always more important than the policy", "B": "Accurate value estimation is critical for computing good advantages, while entropy is a mild regularizer", "C": "The entropy term converges faster and needs less weight", "D": "The value loss has smaller gradients and needs amplification"}, "answer": "B", "explanation": "The advantage $$\\hat{A}_t = G_t^{(n)} - V(s_t)$$ directly depends on the quality of $$V(s_t)$$. An inaccurate critic produces noisy advantages, destabilizing policy learning. Thus $$c_1$$ is relatively large to ensure good value estimates. The entropy bonus is just a regularizer to prevent premature convergence, so $$c_2$$ is small.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 76, "question": "Why are policy gradient methods preferred over DQN for continuous action spaces?", "options": {"A": "DQN requires discretizing the action space, which scales exponentially with dimensionality", "B": "Policy gradients converge faster than DQN in all settings", "C": "DQN cannot use neural networks for function approximation", "D": "Policy gradients always achieve higher returns than DQN"}, "answer": "A", "explanation": "DQN computes $$\\arg\\max_a Q(s,a)$$, which requires evaluating $$Q$$ over all actions. In continuous spaces, this maximization is intractable without discretization, which scales exponentially with action dimensionality. Policy gradient methods directly output actions from $$\\pi_\\theta(a|s)$$, naturally handling continuous spaces.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 77, "question": "The Dyna-Q architecture works by:", "options": {"A": "Training two separate Q-networks and taking the minimum", "B": "Using only simulated experience from a pre-trained model", "C": "Interleaving real environment experience with model-generated (simulated) experience for Q-learning updates", "D": "Alternating between model-free and model-based phases every epoch"}, "answer": "C", "explanation": "Dyna-Q interleaves real and simulated experience: after each real environment step, the agent performs additional Q-learning updates using transitions generated by the learned model. This dramatically improves sample efficiency by extracting more learning from each real interaction.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 78, "question": "Model Predictive Control (MPC) is robust to model errors because:", "options": {"A": "It uses a perfect model of the environment", "B": "It plans over a horizon but only executes the first action, then re-plans with updated state information", "C": "It averages predictions from multiple models", "D": "It trains the model online with the latest data"}, "answer": "B", "explanation": "MPC plans an action sequence over horizon $$H$$, but only executes the first action $$a_1$$. After observing the real next state, it re-plans from scratch. This constant re-planning with real state feedback limits how far model errors can compound.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 79, "question": "Conservative Q-Learning (CQL) addresses offline RL's extrapolation error by:", "options": {"A": "Using importance sampling to correct for distribution mismatch", "B": "Training a separate model to detect OOD actions", "C": "Clipping Q-values to a fixed range", "D": "Penalizing Q-values for out-of-distribution actions and pushing up Q-values for in-distribution actions"}, "answer": "D", "explanation": "CQL adds a regularizer to the Q-learning objective that pushes down Q-values for actions not well-represented in the dataset (OOD) and pushes up Q-values for actions that appear in the data. This creates a conservative (lower-bound) estimate of the true Q-function, preventing overestimation of unseen actions.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 80, "question": "If a learned dynamics model has 95% per-step accuracy, what is the approximate accuracy after 50 steps?", "options": {"A": "7.7% ($$0.95^{50}$$, exponential compounding)", "B": "47.5% (linear decay)", "C": "90% (slow decay)", "D": "50% (random chance)"}, "answer": "A", "explanation": "Model errors compound multiplicatively: $$0.95^{50} \\approx 0.077 = 7.7\\%$$. Even a seemingly accurate model becomes nearly useless over long horizons. This is why MBRL methods use short rollouts, MPC-style re-planning, or ensemble uncertainty to mitigate compounding errors.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 81, "question": "What happens if you use a baseline that depends on the action $$a$$ (not just state $$s$$)?", "options": {"A": "It reduces variance more effectively than a state-only baseline", "B": "It has no effect on the gradient estimate", "C": "It makes the algorithm off-policy", "D": "It introduces bias into the policy gradient estimate"}, "answer": "D", "explanation": "The baseline proof relies on $$\\sum_a \\nabla_\\theta \\pi_\\theta(a|s) \\cdot b(s) = b(s) \\cdot \\nabla_\\theta \\sum_a \\pi_\\theta(a|s) = 0$$. If $$b$$ depends on $$a$$, it cannot be factored out of the sum, so $$\\sum_a \\nabla_\\theta \\pi_\\theta(a|s) \\cdot b(s,a) \\neq 0$$ in general. This introduces bias.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 82, "question": "If the critic has high approximation error, the consequence for the actor is:", "options": {"A": "The actor converges faster due to regularization", "B": "The actor receives biased gradient estimates, potentially converging to a suboptimal policy", "C": "The actor's learning rate must be increased to compensate", "D": "The actor's updates become high variance but remain unbiased"}, "answer": "B", "explanation": "The actor uses the critic's value estimates to compute the advantage/TD error for its gradient. If the critic poorly approximates $$V^\\pi$$ or $$Q^\\pi$$, the resulting advantage estimates are biased, leading the actor to update in incorrect directions. A bad critic leads to a bad actor.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 83, "question": "Using $$n$$-step returns in Actor-Critic instead of 1-step TD:", "options": {"A": "Increases bias and decreases variance", "B": "Decreases both bias and variance", "C": "Decreases bias and increases variance (interpolating toward Monte Carlo)", "D": "Increases both bias and variance"}, "answer": "C", "explanation": "As $$n$$ increases, the $$n$$-step return relies more on actual rewards and less on the (potentially inaccurate) value function bootstrap. This reduces bias (approaching the unbiased Monte Carlo return as $$n \\to \\infty$$) but increases variance (more stochastic reward terms). The choice of $$n$$ controls the bias-variance tradeoff.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 84, "question": "We cannot compute $$\\nabla_\\theta J(\\theta)$$ by simply moving the gradient inside $$\\mathbb{E}_\\tau[R(\\tau)]$$ because:", "options": {"A": "$$R(\\tau)$$ is not differentiable", "B": "The gradient operator is not linear", "C": "The reward function is unknown", "D": "The expectation is over trajectories whose distribution $$p_\\theta(\\tau)$$ depends on $$\\theta$$"}, "answer": "D", "explanation": "$$J(\\theta) = \\mathbb{E}_{\\tau \\sim p_\\theta(\\tau)}[R(\\tau)] = \\int p_\\theta(\\tau) R(\\tau) d\\tau$$. We cannot move $$\\nabla_\\theta$$ inside because $$p_\\theta(\\tau)$$ depends on $$\\theta$$. The log-derivative trick resolves this: $$\\nabla_\\theta p_\\theta(\\tau) = p_\\theta(\\tau) \\nabla_\\theta \\log p_\\theta(\\tau)$$, converting the gradient into an expectation under $$p_\\theta$$.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 85, "question": "If all workers in A3C use the same random seed and environment, the benefit of parallelism would be:", "options": {"A": "Largely eliminated because the experiences would be highly correlated", "B": "Unchanged \u2014 parallelism always helps regardless of diversity", "C": "Improved \u2014 identical experiences reinforce learning", "D": "Slightly reduced but still significant due to asynchronous timing"}, "answer": "A", "explanation": "The key benefit of parallel actors is data decorrelation through diverse experiences. If all workers see identical states and take identical actions, their experiences are perfectly correlated, defeating the purpose. Different random seeds and/or environment instances ensure workers explore different trajectories.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 86, "question": "The multi-modality problem in Behavior Cloning arises when:", "options": {"A": "The agent must process multiple sensor modalities (camera, lidar, etc.)", "B": "Expert demonstrations contain multiple valid actions for the same state, and a unimodal policy averages them", "C": "The training data comes from multiple different environments", "D": "The policy network has too many output modes"}, "answer": "B", "explanation": "When experts demonstrate multiple valid behaviors for the same state (e.g., going left or right around an obstacle), a unimodal Gaussian policy will average these, potentially producing a dangerous middle action (e.g., going straight into the obstacle). Solutions include mixture density networks or discretized action spaces.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 87, "question": "HER creates an \"implicit curriculum\" because:", "options": {"A": "It explicitly schedules goals from easy to hard during training", "B": "It uses a curriculum learning scheduler to adjust the learning rate", "C": "Relabeled goals from nearby achieved states are naturally easier, so the agent learns easy goals first before harder ones", "D": "The replay buffer is sorted by difficulty level"}, "answer": "C", "explanation": "HER's implicit curriculum emerges naturally: early in training, the agent achieves states close to its starting position, so relabeled goals are nearby and easy. As the agent improves and reaches farther states, the relabeled goals become progressively harder, creating an automatic curriculum without explicit scheduling.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 88, "question": "Which of the following is NOT a requirement for HER to work?", "options": {"A": "A goal-conditioned policy $$\\pi(a|s,g)$$", "B": "A mapping function $$m(s)$$ to extract achieved goals from states", "C": "A sparse binary reward function", "D": "An on-policy algorithm like PPO or A2C"}, "answer": "D", "explanation": "HER requires an **off-policy** algorithm (like DDPG, DQN, TD3, or SAC) because it modifies past experiences by relabeling goals. On-policy algorithms cannot reuse modified past data since they require data collected under the current policy. Options A, B, and C are all actual requirements.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 89, "question": "The relationship between the natural gradient and the KL divergence constraint is:", "options": {"A": "The natural gradient ignores KL divergence entirely", "B": "The natural gradient maximizes KL divergence", "C": "The natural gradient minimizes KL divergence between the policy and the optimal policy", "D": "The natural gradient step is equivalent to the steepest ascent direction under a local KL divergence constraint"}, "answer": "D", "explanation": "The natural gradient $$F^{-1}\\nabla J$$ can be derived as the solution to: $$\\max_{\\Delta\\theta} \\nabla J^\\top \\Delta\\theta$$ subject to $$\\Delta\\theta^\\top F \\Delta\\theta \\leq \\epsilon$$. Since $$F$$ is the Hessian of $$D_{KL}$$ at $$\\Delta\\theta = 0$$, this is equivalent to steepest ascent under a local KL constraint \u2014 exactly the TRPO formulation.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 90, "question": "TRPO's line search after the conjugate gradient step is needed to:", "options": {"A": "Ensure the KL constraint is satisfied and the surrogate objective actually improves", "B": "Compute the Fisher Information Matrix", "C": "Find the optimal learning rate for the critic", "D": "Convert the natural gradient to the standard gradient"}, "answer": "A", "explanation": "The CG step computes the direction $$F^{-1}g$$, but the step size must be chosen to satisfy the KL constraint $$D_{KL} \\leq \\delta$$. The line search performs backtracking: it tries progressively smaller step sizes until both the KL constraint is met and the surrogate objective improves.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 91, "question": "Causal confusion in Behavior Cloning refers to:", "options": {"A": "The agent learning the correct causal relationships too slowly", "B": "The agent latching onto spurious correlations instead of true causal features", "C": "Confusion between the reward signal and the state representation", "D": "The inability to distinguish between different expert demonstrators"}, "answer": "B", "explanation": "Causal confusion occurs when the agent identifies correlations in the data that are not causally related to the correct action. For example, a self-driving agent might learn to stop when it sees brake lights of the car ahead, rather than learning to stop based on actual road conditions.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 92, "question": "goalGAIL can outperform the demonstrator because:", "options": {"A": "It uses a larger neural network than the demonstrator", "B": "It trains for more episodes than the demonstrator", "C": "It uses RL optimization (not just supervised learning), allowing it to discover better strategies", "D": "It has access to the environment's reward function"}, "answer": "C", "explanation": "goalGAIL combines goal-conditioned GAIL with HER's relabeling strategy. Because it uses RL optimization (not just supervised learning like BC), it can discover better strategies than the demonstrator provided. Standard BC is fundamentally limited to at best matching the expert's performance.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 93, "question": "In offline RL, \"extrapolation error\" specifically refers to:", "options": {"A": "The error from extrapolating the model beyond the training horizon", "B": "The gap between training and evaluation performance", "C": "The error from using function approximation instead of tabular methods", "D": "Unreliable Q-value estimates for state-action pairs not represented in the offline dataset"}, "answer": "D", "explanation": "Extrapolation error occurs when the Q-function is queried on $$(s,a)$$ pairs outside the offline dataset's distribution. Neural networks can produce arbitrarily wrong outputs for OOD inputs, and the $$\\max$$ operator in Bellman updates systematically selects these overestimated values, causing cascading errors.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 94, "question": "MOPO (Model-based Offline Policy Optimization) modifies the reward function as:", "options": {"A": "$$\\tilde{r}(s,a) = r(s,a) + \\lambda \\cdot u(s,a)$$ (adding uncertainty bonus)", "B": "$$\\tilde{r}(s,a) = r(s,a) \\cdot u(s,a)$$ (scaling by uncertainty)", "C": "$$\\tilde{r}(s,a) = \\max(r(s,a), u(s,a))$$", "D": "$$\\tilde{r}(s,a) = r(s,a) - \\lambda \\cdot u(s,a)$$ (subtracting uncertainty penalty)"}, "answer": "D", "explanation": "MOPO penalizes the reward by the model's uncertainty: $$\\tilde{r}(s,a) = r(s,a) - \\lambda \\cdot u(s,a)$$. This discourages the policy from visiting state-action pairs where the model is uncertain (likely OOD), implementing the pessimism principle in a model-based offline RL framework.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 95, "question": "Which is NOT a valid variance reduction technique for policy gradients?", "options": {"A": "Increasing the discount factor $$\\gamma$$ toward 1", "B": "Subtracting a learned state-dependent baseline $$V_w(s)$$", "C": "Using the advantage function $$A(s,a)$$ instead of $$Q(s,a)$$", "D": "Using Actor-Critic with TD bootstrapping"}, "answer": "A", "explanation": "Increasing $$\\gamma$$ toward 1 actually **increases** variance because the return $$G_t$$ depends on more future rewards, each adding stochasticity. Valid variance reduction techniques include: subtracting a baseline (B), using advantages (C), and bootstrapping via Actor-Critic (D).", "tier": "Tier 4 \u2014 Moderate"}, {"num": 96, "question": "The \"Learning by Cheating\" approach involves:", "options": {"A": "Using reward shaping to make the task easier", "B": "Training a privileged agent with full state access, then distilling into a sensorimotor student", "C": "Copying weights from a pre-trained model on a different task", "D": "Augmenting the training data with adversarial examples"}, "answer": "B", "explanation": "\"Learning by Cheating\" is a two-stage process: first train a privileged agent that has access to ground-truth state information (the \"cheating\" part), then use imitation learning to distill this agent's behavior into a student that only uses raw sensory input (e.g., camera images).", "tier": "Tier 4 \u2014 Moderate"}, {"num": 97, "question": "Which planning method in MBRL does NOT require gradients through the dynamics model?", "options": {"A": "Backpropagation through the model (analytic gradients)", "B": "Policy gradient through learned model rollouts", "C": "CEM (Cross-Entropy Method)", "D": "Collocation with gradient-based optimization"}, "answer": "C", "explanation": "CEM is a derivative-free (gradient-free) optimization method. It uses sampling and elite selection rather than gradient computation. This makes it applicable even when the dynamics model is non-differentiable. The other three methods all require differentiable dynamics.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 98, "question": "If an agent trained with Behavior Cloning has a per-step error rate of $$\\epsilon = 0.01$$ and the trajectory length is $$T = 100$$, the approximate total error is:", "options": {"A": "$$O(0.01)$$ \u2014 approximately 0.01", "B": "$$O(10)$$ \u2014 approximately 10", "C": "$$O(100)$$ \u2014 approximately 100", "D": "$$O(1)$$ \u2014 approximately 1"}, "answer": "C", "explanation": "Using the BC error bound $$O(\\epsilon T^2)$$: $$0.01 \\times 100^2 = 0.01 \\times 10000 = 100$$. This illustrates why BC fails for long horizons \u2014 even a 1% per-step error leads to massive cumulative error over 100 steps.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 99, "question": "Ensemble models in MBRL help address the model exploitation problem by:", "options": {"A": "Providing uncertainty estimates that penalize the policy in regions where the model is unreliable", "B": "Training each model on a different subset of the action space", "C": "Averaging predictions to get a more accurate model", "D": "Allowing parallel training for faster convergence"}, "answer": "A", "explanation": "When ensemble models disagree, it signals high epistemic uncertainty \u2014 the model is unreliable in that region. By penalizing the policy's reward or value estimates in high-uncertainty regions, the agent is discouraged from exploiting model inaccuracies. This directly addresses the model exploitation problem.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 100, "question": "The quality of an offline RL policy is fundamentally bounded by:", "options": {"A": "The size of the neural network used for the Q-function", "B": "The quality and coverage of the offline dataset collected by the behavior policy", "C": "The number of gradient updates performed during training", "D": "The choice of optimizer (Adam vs. SGD)"}, "answer": "B", "explanation": "In offline RL, the agent can only learn from the fixed dataset $$\\mathcal{D}$$. If the behavior policy $$\\beta$$ that collected the data was poor or didn't cover important parts of the state-action space, the learned policy cannot discover better strategies. Dataset quality and coverage are the fundamental bottleneck.", "tier": "Tier 4 \u2014 Moderate"}],
+  cmpe256: [{"num": 1, "question": "Cosine Similarity Computation\nGiven $$\\mathbf{x} = (3, 4, 0)$$ and $$\\mathbf{y} = (0, 4, 3)$$, what is $$\\cos(\\mathbf{x}, \\mathbf{y})$$?", "options": {"A": "0.80", "B": "0.64", "C": "0.48", "D": "0.32"}, "answer": "B", "explanation": "$$\\mathbf{x} \\cdot \\mathbf{y} = 0 + 16 + 0 = 16$$. $$\\|\\mathbf{x}\\| = \\sqrt{9+16+0} = 5$$. $$\\|\\mathbf{y}\\| = \\sqrt{0+16+9} = 5$$. $$\\cos = 16/25 = 0.64$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 2, "question": "Jaccard Similarity\nUsers A and B have purchased items \u2014 A: {1, 3, 5, 7, 9}, B: {2, 3, 5, 7, 8}. What is the Jaccard similarity?", "options": {"A": "0.500", "B": "0.375", "C": "0.600", "D": "3/7 \u2248 0.429"}, "answer": "D", "explanation": "$$A \\cap B = \\{3, 5, 7\\}$$, $$|A \\cap B| = 3$$. $$A \\cup B = \\{1,2,3,5,7,8,9\\}$$, $$|A \\cup B| = 7$$. $$J = 3/7 \\approx 0.429$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 3, "question": "Pearson Correlation \u2014 Perfect Linear\nUsers X = (2, 4, 6) and Y = (3, 6, 9). What is the Pearson correlation?", "options": {"A": "1.00", "B": "0.87", "C": "0.50", "D": "0.75"}, "answer": "A", "explanation": "$$\\bar{X}=4, \\bar{Y}=6$$. Deviations: X \u2192 (\u22122, 0, 2), Y \u2192 (\u22123, 0, 3). Numerator = 6+0+6 = 12. Denominator = $$\\sqrt{8}\\sqrt{18} = \\sqrt{144} = 12$$. $$r = 12/12 = 1.00$$. Perfect positive linear relationship.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 4, "question": "Confusion Matrix \u2014 Precision & Recall\nA classifier produces: TP = 30, FP = 10, FN = 20, TN = 140. What are precision and recall?", "options": {"A": "P = 0.60, R = 0.75", "B": "P = 0.75, R = 0.60", "C": "P = 0.80, R = 0.50", "D": "P = 0.50, R = 0.80"}, "answer": "B", "explanation": "$$P = \\frac{30}{30+10} = \\frac{30}{40} = 0.75$$. $$R = \\frac{30}{30+20} = \\frac{30}{50} = 0.60$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 5, "question": "User-Based CF \u2014 Weighted Prediction\n$$sim(\\text{Alice}, \\text{Bob}) = 0.8$$, $$sim(\\text{Alice}, \\text{Carol}) = 0.6$$. Bob rated Item X = 2, Carol rated Item X = 5. Using weighted average user-based CF, predict Alice's rating for Item X.", "options": {"A": "3.50", "B": "4.00", "C": "3.29", "D": "2.86"}, "answer": "C", "explanation": "$$\\hat{r} = \\frac{0.8 \\times 2 + 0.6 \\times 5}{0.8 + 0.6} = \\frac{1.6 + 3.0}{1.4} = \\frac{4.6}{1.4} \\approx 3.29$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 6, "question": "Mean-Centered CF Prediction\nUsing Q5 data with $$\\mu_{\\text{Alice}} = 4.0$$, $$\\mu_{\\text{Bob}} = 3.0$$, $$\\mu_{\\text{Carol}} = 4.5$$. Compute the mean-centered prediction for Alice's rating of Item X.", "options": {"A": "3.29", "B": "4.00", "C": "3.50", "D": "3.64"}, "answer": "D", "explanation": "$$\\hat{r} = 4.0 + \\frac{0.8(2-3.0) + 0.6(5-4.5)}{0.8+0.6} = 4.0 + \\frac{-0.8+0.3}{1.4} = 4.0 + \\frac{-0.5}{1.4} = 4.0 - 0.357 \\approx 3.64$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 7, "question": "Adjusted Cosine Similarity\nGiven raw ratings and user means:\n\n|       | Item A | Item B | $$\\bar{r}_u$$ |\n|-------|--------|--------|----------------|\n| U1    | 5      | 3      | 4.0            |\n| U2    | 2      | 4      | 3.0            |\n\nCompute the adjusted cosine similarity between Item A and Item B.", "options": {"A": "0.00", "B": "0.50", "C": "\u22121.00", "D": "\u22120.50"}, "answer": "C", "explanation": "Mean-centered: A' = (5\u22124, 2\u22123) = (1, \u22121). B' = (3\u22124, 4\u22123) = (\u22121, 1). Numerator: (1)(\u22121) + (\u22121)(1) = \u22122. Denominator: $$\\sqrt{2}\\sqrt{2} = 2$$. $$sim = -2/2 = -1.00$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 8, "question": "Item-Based CF Prediction\nUser U has rated: Item X = 4, Item Y = 5. Predict U's rating for Item Z given: $$sim(Z, X) = 0.7$$, $$sim(Z, Y) = 0.3$$. Using item-based weighted average:", "options": {"A": "4.30", "B": "4.50", "C": "4.00", "D": "3.70"}, "answer": "A", "explanation": "$$\\hat{r}_{U,Z} = \\frac{0.7 \\times 4 + 0.3 \\times 5}{0.7 + 0.3} = \\frac{2.8 + 1.5}{1.0} = 4.30$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 9, "question": "MF \u2014 Rating Prediction from Factor Vectors\nGiven user factor vector $$p_u = (1, 2, 3)$$ and item factor vector $$q_i = (0.5, 0.1, 0.4)$$, what is $$\\hat{r}_{ui} = q_i^T p_u$$?", "options": {"A": "1.50", "B": "1.90", "C": "2.10", "D": "1.70"}, "answer": "B", "explanation": "$$q_i^T p_u = (1)(0.5) + (2)(0.1) + (3)(0.4) = 0.5 + 0.2 + 1.2 = 1.90$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 10, "question": "Biased MF Prediction\n$$\\mu = 3.7$$, $$b_u = -0.2$$, $$b_i = 0.5$$, $$q_i^T p_u = 0.3$$. What is $$\\hat{r}_{ui}$$?", "options": {"A": "4.0", "B": "3.8", "C": "4.3", "D": "4.5"}, "answer": "C", "explanation": "$$\\hat{r}_{ui} = \\mu + b_u + b_i + q_i^T p_u = 3.7 + (-0.2) + 0.5 + 0.3 = 4.3$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 11, "question": "PageRank \u2014 No Damping Factor\nDirected graph: A \u2192 B, A \u2192 C, B \u2192 C. Initial $$PR = 1/3$$ each. After one iteration with $$d = 1$$ (no damping), what is $$PR(C)$$?", "options": {"A": "1/6", "B": "1/3", "C": "1/2", "D": "5/6"}, "answer": "C", "explanation": "$$PR(C) = \\frac{PR(A)}{|Out(A)|} + \\frac{PR(B)}{|Out(B)|} = \\frac{1/3}{2} + \\frac{1/3}{1} = 1/6 + 1/3 = 1/2$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 12, "question": "PageRank \u2014 With Damping Factor\n$$N = 4$$, $$d = 0.8$$. Page $$p_i$$ has one incoming link from $$p_j$$ (which has 2 outgoing links, $$PR(p_j) = 0.4$$). What is $$PR(p_i)$$?", "options": {"A": "0.05", "B": "0.16", "C": "0.37", "D": "0.21"}, "answer": "D", "explanation": "$$PR(p_i) = \\frac{1-0.8}{4} + 0.8 \\cdot \\frac{0.4}{2} = 0.05 + 0.16 = 0.21$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 13, "question": "Degree Centrality\nIn an undirected graph with 5 nodes, node X is connected to nodes A, B, and C. What is the degree centrality of X?", "options": {"A": "3/4 = 0.75", "B": "3/5 = 0.60", "C": "2/5 = 0.40", "D": "1/3 \u2248 0.33"}, "answer": "A", "explanation": "$$C_D(X) = \\frac{d(X)}{n-1} = \\frac{3}{5-1} = \\frac{3}{4} = 0.75$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 14, "question": "Clustering Coefficient\nNode $$v$$ has 4 neighbors. Among those 4 neighbors, there are 3 edges connecting them. What is the clustering coefficient?", "options": {"A": "3/4", "B": "1/4", "C": "3/8", "D": "1/2"}, "answer": "D", "explanation": "Max possible edges = $$\\binom{4}{2} = 6$$. Clustering coefficient = $$3/6 = 1/2$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 15, "question": "F1-Score Computation\nGiven Precision = 0.80 and Recall = 0.60, what is the F1-score?", "options": {"A": "0.70", "B": "0.686", "C": "0.750", "D": "0.800"}, "answer": "B", "explanation": "$$F_1 = \\frac{2 \\times 0.80 \\times 0.60}{0.80 + 0.60} = \\frac{0.96}{1.40} \\approx 0.686$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 16, "question": "RMSE Computation\nActual ratings: [5, 3, 4, 2], predicted: [4, 3, 5, 3]. What is the RMSE?", "options": {"A": "1.000", "B": "0.750", "C": "0.866", "D": "1.225"}, "answer": "C", "explanation": "Errors: (1, 0, \u22121, \u22121). Squared: (1, 0, 1, 1). Mean = 3/4 = 0.75. $$RMSE = \\sqrt{0.75} \\approx 0.866$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 17, "question": "Precision@k\nA recommender returns top-5: {A, B, C, D, E}. Relevant items: {A, C, F, G}. What is Precision@5?", "options": {"A": "0.50", "B": "0.60", "C": "0.20", "D": "0.40"}, "answer": "D", "explanation": "Relevant in top-5: {A, C} \u2192 2 items. $$\\text{Precision@5} = 2/5 = 0.40$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 18, "question": "Recall@k\nSame data as Q17. What is Recall@5?", "options": {"A": "0.50", "B": "0.25", "C": "0.60", "D": "0.40"}, "answer": "A", "explanation": "Relevant found: {A, C} \u2192 2. Total relevant: 4. $$\\text{Recall@5} = 2/4 = 0.50$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 19, "question": "UCB Computation\nArm has $$\\hat{\\mu}_a = 0.6$$, $$N_a = 4$$, round $$t = 100$$, $$c = 1$$. Use $$\\ln(100) \\approx 4.6$$. What is the UCB score?", "options": {"A": "1.07", "B": "1.67", "C": "0.60", "D": "2.07"}, "answer": "B", "explanation": "UCB = $$0.6 + 1 \\cdot \\sqrt{4.6/4} = 0.6 + \\sqrt{1.15} = 0.6 + 1.07 = 1.67$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 20, "question": "Thompson Sampling Update\nAn arm starts with Beta(1, 1). After 3 successes and 2 failures, what is the posterior?", "options": {"A": "Beta(3, 2)", "B": "Beta(4, 3)", "C": "Beta(1, 1)", "D": "Beta(3, 3)"}, "answer": "B", "explanation": "$$\\alpha = 1 + 3 = 4$$, $$\\beta = 1 + 2 = 3$$. Posterior = Beta(4, 3).", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 21, "question": "Betweenness Centrality \u2014 Star Graph\nStar graph: center C connected to 4 leaves (A, B, D, E). What is the betweenness centrality of C?", "options": {"A": "4", "B": "3", "C": "6", "D": "0"}, "answer": "C", "explanation": "Every shortest path between leaf pairs passes through C. Leaf pairs = $$\\binom{4}{2} = 6$$. Each contributes 1. $$C_B(C) = 6$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 22, "question": "Closeness Centrality\nGraph with 4 nodes. Shortest-path distances from X to A, B, C are 1, 2, 3. What is closeness centrality of X?", "options": {"A": "1/6", "B": "1/2", "C": "2/3", "D": "1/3"}, "answer": "B", "explanation": "$$C_C(X) = \\frac{n-1}{\\sum d(X,j)} = \\frac{3}{1+2+3} = \\frac{3}{6} = 0.5$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 23, "question": "Regret Computation\nOver $$T = 10$$ rounds, optimal arm mean $$\\mu^* = 0.8$$. Agent's total reward = 6.0. What is regret?", "options": {"A": "0.8", "B": "6.0", "C": "8.0", "D": "2.0"}, "answer": "D", "explanation": "$$R_T = T\\mu^* - \\sum \\mu_{a_t} = 10(0.8) - 6.0 = 8.0 - 6.0 = 2.0$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 24, "question": "SGD Error in MF\n$$q_i = (1.0, 0.5)$$, $$p_u = (0.8, 0.4)$$, $$r_{ui} = 4.0$$. What is $$e_{ui}$$?", "options": {"A": "3.0", "B": "2.8", "C": "2.5", "D": "1.0"}, "answer": "A", "explanation": "$$q_i^T p_u = 0.8 + 0.2 = 1.0$$. $$e_{ui} = 4.0 - 1.0 = 3.0$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 25, "question": "Sparsity Computation\n10,000 users, 50,000 movies. Average user rated 50 movies. What percentage of the matrix is filled?", "options": {"A": "0.1%", "B": "1.0%", "C": "0.5%", "D": "5.0%"}, "answer": "A", "explanation": "Total = $$10{,}000 \\times 50{,}000 = 500{,}000{,}000$$. Filled = $$10{,}000 \\times 50 = 500{,}000$$. $$500{,}000/500{,}000{,}000 = 0.001 = 0.1\\%$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 26, "question": "Min-Max Normalization\nFeature range [20, 100]. What is the normalized value of 60?", "options": {"A": "0.60", "B": "0.75", "C": "0.40", "D": "0.50"}, "answer": "D", "explanation": "$$x' = \\frac{60 - 20}{100 - 20} = \\frac{40}{80} = 0.50$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 27, "question": "Specificity Computation\nTP = 50, FP = 30, FN = 10, TN = 110. What is the specificity?", "options": {"A": "0.833", "B": "0.786", "C": "0.625", "D": "0.550"}, "answer": "B", "explanation": "$$\\text{Specificity} = \\frac{TN}{TN+FP} = \\frac{110}{140} \\approx 0.786$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 28, "question": "GMF Element-wise Product\nUser embedding $$p_u = (0.5, 0.8, 0.3)$$, item embedding $$q_i = (0.4, 0.5, 1.0)$$. What is $$\\phi^{GMF} = p_u \\odot q_i$$?", "options": {"A": "(0.9, 1.3, 1.3)", "B": "(0.1, 0.3, 0.7)", "C": "(0.20, 0.40, 0.30)", "D": "(0.50, 0.80, 0.30)"}, "answer": "C", "explanation": "Element-wise: $$(0.5 \\times 0.4, 0.8 \\times 0.5, 0.3 \\times 1.0) = (0.20, 0.40, 0.30)$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 29, "question": "Normalized Betweenness Centrality\nUndirected graph, $$n = 5$$, $$C_B(v) = 6$$. What is $$C_B'(v)$$?", "options": {"A": "0.25", "B": "0.50", "C": "0.75", "D": "1.0"}, "answer": "D", "explanation": "$$C_B'(v) = \\frac{2 \\times 6}{(5-1)(5-2)} = \\frac{12}{12} = 1.0$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 30, "question": "Full Biased MF Prediction\n$$\\mu = 3.0$$, $$b_u = 0.4$$, $$b_i = -0.2$$, $$p_u = (2, 1)$$, $$q_i = (0.5, 0.6)$$. Compute $$\\hat{r}_{ui}$$.", "options": {"A": "3.60", "B": "4.20", "C": "5.40", "D": "4.80"}, "answer": "D", "explanation": "$$q_i^T p_u = 1.0 + 0.6 = 1.6$$. $$\\hat{r}_{ui} = 3.0 + 0.4 - 0.2 + 1.6 = 4.8$$.", "tier": "Tier 1 \u2014 Highest Probability"}, {"num": 31, "question": "\ud83c\udfaf Multi-Class Confusion Matrix (3\u00d73 \u2014 Dog/Cat/Rabbit)\nA classifier for 3 classes produces this confusion matrix:\n\n|  | Pred Dog | Pred Cat | Pred Rabbit |\n|--|----------|----------|-------------|\n| **Actual Dog** | 40 | 5 | 5 |\n| **Actual Cat** | 10 | 30 | 10 |\n| **Actual Rabbit** | 5 | 5 | 40 |\n\nWhat is the precision for the \"Dog\" class?", "options": {"A": "40/50 = 0.80", "B": "40/55 \u2248 0.727", "C": "40/45 \u2248 0.889", "D": "40/150 \u2248 0.267"}, "answer": "B", "explanation": "Precision for Dog = $$\\frac{\\text{TP}_{\\text{Dog}}}{\\text{Total predicted as Dog}}$$. Column \"Pred Dog\": 40 + 10 + 5 = 55. Precision = 40/55 \u2248 0.727. **Trap:** Students often use the row (recall) instead of the column (precision).", "tier": "Tier 2 \u2014 High Probability"}, {"num": 32, "question": "\ud83c\udfaf Missing Confusion Matrix Values\nA binary classifier tested on 200 samples: TP = 60, TN = ?, FP = 15, FN = ?. Recall = 0.75. Find FN and TN.", "options": {"A": "FN = 20, TN = 105", "B": "FN = 15, TN = 110", "C": "FN = 25, TN = 100", "D": "FN = 30, TN = 95"}, "answer": "A", "explanation": "Recall = TP/(TP+FN) \u2192 0.75 = 60/(60+FN) \u2192 FN = 20. Total = 200 = 60+TN+15+20 \u2192 TN = 105.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 33, "question": "\ud83c\udfaf Mean-Centered Ratings \u2014 Cold-Start Edge Case\nUser A has rated only 1 item (rating = 5). What is the mean-centered rating for that item?", "options": {"A": "5.0", "B": "0.0", "C": "Cannot be computed", "D": "1.0"}, "answer": "B", "explanation": "$$\\bar{r}_A = 5.0$$. Mean-centered = $$5 - 5 = 0$$. With only one rating, mean-centering always produces 0, making the user's deviation uninformative. This is a cold-start edge case.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 34, "question": "\ud83c\udfaf High Accuracy, Terrible Minority Precision\nA spam detector on 1000 emails (950 ham, 50 spam) predicts everything as ham. What are accuracy and spam precision?", "options": {"A": "Accuracy = 95%, Spam Precision = 0%", "B": "Accuracy = 95%, Spam Precision = 95%", "C": "Accuracy = 50%, Spam Precision = 50%", "D": "Accuracy = 100%, Spam Precision = 100%"}, "answer": "A", "explanation": "Predicting all ham: 950 correct out of 1000 = 95% accuracy. But zero spam predictions made, so spam precision = 0/0 (undefined/0%). **Classic imbalanced-class trap.**", "tier": "Tier 2 \u2014 High Probability"}, {"num": 35, "question": "\ud83c\udfaf Pearson vs. Cosine \u2014 When They Disagree\nUser A = (5, 5, 5), User B = (1, 1, 1). What are cosine similarity and Pearson correlation?", "options": {"A": "Cosine = 1.0, Pearson = undefined", "B": "Cosine = 0.0, Pearson = 1.0", "C": "Cosine = 1.0, Pearson = 1.0", "D": "Cosine = 0.33, Pearson = 0.0"}, "answer": "A", "explanation": "Cosine: parallel vectors \u2192 1.0. Pearson: deviations all zero (zero variance) \u2192 division by zero \u2192 undefined. This shows why Pearson fails when a user gives identical ratings to everything.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 36, "question": "\ud83c\udfaf PageRank \u2014 Dead End Behavior\nGraph: A \u2192 B, B \u2192 C, C has no outgoing links. Without damping ($$d=1$$), what happens after many iterations?", "options": {"A": "All PageRank accumulates at C", "B": "PageRank distributes equally", "C": "PageRank oscillates", "D": "All PageRank accumulates at A"}, "answer": "A", "explanation": "C is a dead end \u2014 receives rank but never passes it on. Rank flows A\u2192B\u2192C and gets stuck. Eventually $$PR(C) \\to 1.0$$, others \u2192 0. Damping factor solves this via teleportation.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 37, "question": "\ud83c\udfaf Cross-Module: New-Item Cold-Start\nA brand-new movie with genre metadata but zero ratings. Which method can recommend it?", "options": {"A": "User-based CF", "B": "Item-based CF", "C": "Content-based filtering", "D": "Matrix factorization"}, "answer": "C", "explanation": "CF methods (A, B, D) all require ratings. Content-based uses item features (genre, director) to match user profiles \u2014 works with zero ratings.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 38, "question": "\ud83c\udfaf Tricky Similarity \u2014 Normalization Matters\nU1 = (1, 1, 1), U2 = (5, 5, 5). Raw cosine similarity?", "options": {"A": "0.0", "B": "0.5", "C": "1.0", "D": "\u22121.0"}, "answer": "C", "explanation": "Parallel vectors \u2192 cos = 1.0. $$\\frac{5+5+5}{\\sqrt{3}\\sqrt{75}} = \\frac{15}{15} = 1.0$$. **Trap:** Cosine says these users are identical even though one rates everything 1 and the other 5. This is why adjusted cosine/Pearson are preferred.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 39, "question": "\ud83c\udfaf Spider Trap Without Damping\nGraph: A \u2192 B, B \u2192 A (cycle), C \u2192 A. Without damping, what happens?", "options": {"A": "Equal distribution", "B": "A and B absorb all PageRank; C gets 0", "C": "C absorbs all PageRank", "D": "Algorithm diverges"}, "answer": "B", "explanation": "C sends rank to A but never receives any back. A\u2194B form a spider trap. Eventually all rank concentrates in {A, B}, $$PR(C) \\to 0$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 40, "question": "\ud83c\udfaf UCB \u2014 Under-Explored Arm Wins\nArm 1: $$\\hat{\\mu}_1 = 0.7, N_1 = 10$$. Arm 2: $$\\hat{\\mu}_2 = 0.5, N_2 = 2$$. $$t = 50, c = 1, \\ln(50) \\approx 3.9$$. Which arm does UCB select?", "options": {"A": "Arm 1 (higher mean)", "B": "Arm 2 (higher UCB score)", "C": "Both tied", "D": "Random selection"}, "answer": "B", "explanation": "Arm 1: $$0.7 + \\sqrt{3.9/10} = 1.32$$. Arm 2: $$0.5 + \\sqrt{3.9/2} = 1.90$$. UCB selects Arm 2 despite lower mean \u2014 it's under-explored.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 41, "question": "\ud83c\udfaf Cross-Module: Exploration-Exploitation\nWhich RecSys approach inherently addresses exploration-exploitation?", "options": {"A": "Item-based CF", "B": "Matrix factorization", "C": "Multi-armed bandits", "D": "Content-based filtering"}, "answer": "C", "explanation": "Bandits explicitly balance exploring new items vs. exploiting known good ones. CF and MF are purely exploitative.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 42, "question": "\ud83c\udfaf Adjusted Cosine \u2014 Three Users\n|       | Item P | Item Q | $$\\bar{r}_u$$ |\n|-------|--------|--------|----------------|\n| U1    | 5      | 4      | 4.0            |\n| U2    | 3      | 4      | 3.0            |\n| U3    | 4      | 2      | 3.0            |\n\nAdjusted cosine between P and Q?", "options": {"A": "0.00", "B": "0.50", "C": "1.00", "D": "\u22120.50"}, "answer": "D", "explanation": "P' = (1, 0, 1), Q' = (0, 1, \u22121). Num = 0+0\u22121 = \u22121. Den = $$\\sqrt{2}\\sqrt{2} = 2$$. sim = \u22120.50.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 43, "question": "\ud83c\udfaf RMSE vs. MAE \u2014 Outlier Sensitivity\nErrors: [0, 0, 0, 4]. What are MAE and RMSE?", "options": {"A": "MAE = 1.0, RMSE = 2.0", "B": "MAE = 2.0, RMSE = 2.0", "C": "MAE = 1.0, RMSE = 1.0", "D": "MAE = 4.0, RMSE = 4.0"}, "answer": "A", "explanation": "MAE = 4/4 = 1.0. RMSE = $$\\sqrt{16/4} = 2.0$$. RMSE doubles because squaring amplifies the outlier.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 44, "question": "\ud83c\udfaf Filter Bubble Problem\nWhich approach is MOST susceptible to creating a filter bubble?", "options": {"A": "Collaborative filtering", "B": "Content-based filtering", "C": "Multi-armed bandits", "D": "Hybrid methods"}, "answer": "B", "explanation": "Content-based only recommends items similar to past preferences (overspecialization). CF can surface items liked by similar users. Bandits explore. Hybrids mitigate.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 45, "question": "\ud83c\udfaf Large \u03bb in MF\nIf $$\\lambda$$ is very large in regularized MF, what happens?", "options": {"A": "Overfitting", "B": "Faster training", "C": "Latent factors \u2192 zero, underfitting", "D": "Regularization ignored"}, "answer": "C", "explanation": "Large $$\\lambda$$ forces $$\\|q_i\\|, \\|p_u\\| \\to 0$$. Predictions collapse to $$\\mu + b_u + b_i$$ only.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 46, "question": "\ud83c\udfaf PageRank Multi-Source\n$$N=3, d=0.85$$. C gets links from A (1 out-link, PR=0.3) and B (3 out-links, PR=0.6). What is PR(C)?", "options": {"A": "0.475", "B": "0.22", "C": "0.05", "D": "0.37"}, "answer": "A", "explanation": "$$PR(C) = \\frac{0.15}{3} + 0.85(\\frac{0.3}{1} + \\frac{0.6}{3}) = 0.05 + 0.85(0.5) = 0.475$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 47, "question": "\ud83c\udfaf User-Based vs. Item-Based Scalability\n10M users, 100K items. Which CF is more scalable?", "options": {"A": "User-based CF", "B": "Item-based CF", "C": "Both equal", "D": "Neither \u2014 must use content-based"}, "answer": "B", "explanation": "User-based: $$O(U^2) = O(10^{14})$$. Item-based: $$O(I^2) = O(10^{10})$$ \u2014 10,000\u00d7 fewer comparisons, plus precomputable.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 48, "question": "\ud83c\udfaf Positive-Only Neighbors\n$$sim(U1,U2) = 0.9$$, $$sim(U1,U3) = -0.5$$. U2 rated M = 3, U3 rated M = 5. Weighted average with positive-only similarities?", "options": {"A": "3.67", "B": "3.00", "C": "4.00", "D": "5.00"}, "answer": "B", "explanation": "Exclude U3 (negative sim). $$\\hat{r} = \\frac{0.9 \\times 3}{0.9} = 3.0$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 49, "question": "\ud83c\udfaf NeuMF Pre-Sigmoid\nGMF output = (0.2, 0.4), MLP output = (0.5, 0.3, 0.1). Weights h = (1,1,1,1,1). What is $$h^T[\\phi^{GMF}; \\phi^{MLP}]$$?", "options": {"A": "0.30", "B": "0.75", "C": "1.50", "D": "2.00"}, "answer": "C", "explanation": "0.2+0.4+0.5+0.3+0.1 = 1.50.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 50, "question": "\ud83c\udfaf Edge Betweenness \u2014 Path Graph\nPath A\u2014B\u2014C\u2014D\u2014E. How many shortest paths through edge B\u2014C?", "options": {"A": "4", "B": "6", "C": "3", "D": "8"}, "answer": "B", "explanation": "Left {A,B} \u00d7 Right {C,D,E} = 2\u00d73 = 6 paths cross B\u2014C.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 51, "question": "\ud83c\udfaf Best Method for Implicit Feedback\nWhich MF optimization is designed for implicit feedback?", "options": {"A": "SGD with explicit ratings", "B": "ALS with confidence weights", "C": "Standard SVD", "D": "Pearson-based CF"}, "answer": "B", "explanation": "ALS uses confidence weights \u2014 more interactions = more confidence, not higher rating. Specifically designed for implicit data.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 52, "question": "\ud83c\udfaf Cosine on Binary Vectors\n$$\\mathbf{a} = (1,1,0,1,0)$$, $$\\mathbf{b} = (1,0,1,1,1)$$. Cosine similarity?", "options": {"A": "0.516", "B": "0.408", "C": "0.667", "D": "0.577"}, "answer": "D", "explanation": "Dot = 2. $$\\|\\mathbf{a}\\| = \\sqrt{3}$$, $$\\|\\mathbf{b}\\| = 2$$. $$\\cos = 2/(2\\sqrt{3}) = 1/\\sqrt{3} \\approx 0.577$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 53, "question": "\ud83c\udfaf \u03b5-Greedy Exploitation Rate\n\u03b5-greedy with $$\\varepsilon = 0.1$$. What fraction exploits?", "options": {"A": "10%", "B": "50%", "C": "100%", "D": "90%"}, "answer": "D", "explanation": "Exploit = $$1 - 0.1 = 0.9 = 90\\%$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 54, "question": "\ud83c\udfaf Matrix Reconstruction Entry\n$$P = \\begin{pmatrix} 1 & 2 \\\\ 3 & 1 \\end{pmatrix}$$, $$Q = \\begin{pmatrix} 1 & 2 \\\\ 0 & 1 \\end{pmatrix}$$. $$\\hat{r}_{21}$$ in $$PQ^T$$?", "options": {"A": "3", "B": "5", "C": "4", "D": "7"}, "answer": "B", "explanation": "Row 2 of P = (3,1). Col 1 of $$Q^T$$ = (1,2). $$3(1)+1(2) = 5$$.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 55, "question": "\ud83c\udfaf Why RMSE/MAE Insufficient for RecSys\nWhy are RMSE/MAE insufficient for evaluating recommender systems?", "options": {"A": "Too computationally expensive", "B": "Only measure classification accuracy", "C": "Measure prediction accuracy but not ranking quality of top-k", "D": "Require unavailable labeled data"}, "answer": "C", "explanation": "Users only see top-k items. A system with low RMSE may still rank poorly. NDCG, Precision@k better reflect user experience.", "tier": "Tier 2 \u2014 High Probability"}, {"num": 56, "question": "Why Adjusted Cosine for Item-Based CF?\nWhy does item-based CF use adjusted cosine instead of raw cosine?", "options": {"A": "Raw cosine is more expensive", "B": "Adjusted cosine accounts for different users' rating scales by mean-centering per user", "C": "Raw cosine can't handle missing values", "D": "Adjusted cosine always gives higher values"}, "answer": "B", "explanation": "Different users have different baselines (generous vs. harsh raters). Adjusted cosine subtracts each user's mean before computing similarity, comparing relative preferences.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 57, "question": "MF vs. SVD\nWhy can't standard SVD be directly applied to the user-item matrix?", "options": {"A": "SVD is too slow", "B": "SVD requires a complete matrix, but rating matrices are sparse", "C": "SVD only handles binary data", "D": "SVD doesn't produce latent factors"}, "answer": "B", "explanation": "SVD needs all entries defined. MF overcomes this by optimizing only over observed entries $$(u,i) \\in K$$.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 58, "question": "Content-Based Advantage\nWhich is an advantage of content-based filtering over CF?", "options": {"A": "Works well even with extremely sparse utility matrices", "B": "Discovers items outside user's preferences", "C": "Leverages wisdom of the crowd", "D": "Requires no feature engineering"}, "answer": "A", "explanation": "Content-based uses item features and individual user profiles \u2014 not other users' ratings. Sparsity doesn't affect it.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 59, "question": "NDCG \u2014 Why Position Matters\nIn NDCG, why are higher-ranked items given more weight?", "options": {"A": "Higher-ranked items are always more relevant", "B": "It simplifies computation", "C": "Users are more likely to examine items at the top of the list", "D": "Lower-ranked items have no relevance"}, "answer": "C", "explanation": "NDCG uses $$\\frac{1}{\\log_2(i+1)}$$ discount \u2014 models the fact that users pay more attention to top results.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 60, "question": "Utility Matrix \u2014 Missing Entries\nWhat does a missing entry in the utility matrix represent?", "options": {"A": "User disliked the item", "B": "Rating is zero", "C": "User has not yet interacted with the item", "D": "Item was removed"}, "answer": "C", "explanation": "Missing \u2260 zero. CF's goal is to predict these missing values.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 61, "question": "Implicit vs. Explicit Feedback\nWhich is an example of implicit feedback?", "options": {"A": "4 out of 5 stars", "B": "Written review saying \"loved it\"", "C": "Thumbs up on a video", "D": "Clicking a product and browsing for 5 minutes"}, "answer": "D", "explanation": "Implicit feedback is inferred from behavior (clicks, time, purchases) without explicit rating. A, B, C are explicit.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 62, "question": "Neighborhood Size Trade-off\nIn user-based CF, what happens if neighborhood $$k$$ is too large?", "options": {"A": "More personalized predictions", "B": "Only most similar user considered", "C": "System runs out of memory", "D": "Predictions become noisier from dissimilar users"}, "answer": "D", "explanation": "Large $$k$$ includes low-similarity users, diluting signal from truly similar neighbors.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 63, "question": "AUC Interpretation\nAn AUC of 0.50 indicates:", "options": {"A": "Perfect classifier", "B": "Perfect precision", "C": "Zero false positives", "D": "No better than random guessing"}, "answer": "D", "explanation": "AUC = 0.5 means ROC curve lies on the diagonal \u2014 no discriminative ability.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 64, "question": "Holdout Method Disadvantage\nMain disadvantage of simple holdout evaluation?", "options": {"A": "Computationally expensive", "B": "Always leads to overfitting", "C": "High variance \u2014 results depend on the particular random split", "D": "Uses all data for training"}, "answer": "C", "explanation": "A single random split may not be representative, especially with small datasets.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 65, "question": "Cross-Validation Advantage\nPrimary advantage of k-fold CV over single holdout?", "options": {"A": "Faster to compute", "B": "Requires less data", "C": "Eliminates need for test set", "D": "Every data point used for both training and testing, reducing variance"}, "answer": "D", "explanation": "Each fold serves as test set once. All data contributes to both training and evaluation.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 66, "question": "A/B Testing Disadvantage\nKey disadvantage of A/B testing for RecSys?", "options": {"A": "Cannot measure user satisfaction", "B": "Requires exposing real users to potentially inferior system", "C": "Identical to offline evaluation", "D": "Doesn't use real user data"}, "answer": "B", "explanation": "Users in treatment group may get worse recommendations. Must run long enough for statistical significance.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 67, "question": "Pearson vs. Cosine Advantage\nWhat advantage does Pearson have over raw cosine for comparing user ratings?", "options": {"A": "Faster to compute", "B": "Works only with binary data", "C": "Accounts for each user's mean rating, handling different scales", "D": "Ignores magnitude entirely"}, "answer": "C", "explanation": "Pearson subtracts each user's mean (effectively mean-centering). Handles generous vs. harsh raters.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 68, "question": "Offline Evaluation Limitation\nWhich limitation is specific to offline evaluation of RecSys?", "options": {"A": "Cannot measure novelty, serendipity, or actual user satisfaction", "B": "Requires real-time traffic", "C": "Too expensive to run", "D": "Always produces biased results"}, "answer": "A", "explanation": "Offline uses historical data only. Can't capture whether users enjoy novel or surprising recommendations.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 69, "question": "SGD vs. ALS\nWhich correctly contrasts SGD and ALS for MF?", "options": {"A": "SGD is parallelizable; ALS is sequential", "B": "ALS is better for implicit feedback and is parallelizable", "C": "SGD requires complete matrix", "D": "ALS always converges faster"}, "answer": "B", "explanation": "ALS fixes one matrix, solves the other in closed form \u2014 parallelizable. Handles implicit data with confidence weights.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 70, "question": "Latent Factors Interpretation\nIn MF for movies, latent factors might correspond to:", "options": {"A": "Explicit genre tags from users", "B": "Number of ratings per movie", "C": "Hidden dimensions like \"how much action\" or \"how serious\"", "D": "Release year"}, "answer": "C", "explanation": "Latent factors are learned automatically \u2014 abstract dimensions of taste discovered from data.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 71, "question": "Bias Term Interpretation\nIn $$\\hat{r}_{ui} = \\mu + b_u + b_i + q_i^T p_u$$, if $$b_u = -0.5$$, what does this mean?", "options": {"A": "User tends to rate 0.5 below global average", "B": "User rated 0.5 fewer items than average", "C": "User's latent vector has magnitude 0.5", "D": "User prefers items with negative bias"}, "answer": "A", "explanation": "$$b_u$$ captures systematic tendency to rate above/below $$\\mu$$. Negative = \"tough rater.\"", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 72, "question": "Increasing Latent Factors\nIncreasing $$f$$ in MF will:", "options": {"A": "Always improve test accuracy", "B": "Increase capacity but risk overfitting if too large", "C": "Decrease training time", "D": "Have no effect"}, "answer": "B", "explanation": "More factors capture finer patterns but can memorize noise. Use cross-validation to select $$f$$.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 73, "question": "Real Networks vs. Random Graphs\nWhich is NOT a characteristic of real-world networks vs. random graphs?", "options": {"A": "Power-law degree distribution", "B": "High clustering coefficient", "C": "Small-world property", "D": "Uniform (Poisson) degree distribution"}, "answer": "D", "explanation": "Random graphs have Poisson distributions. Real networks have power-law (scale-free) with hubs.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 74, "question": "Bipartite Graph Property\nWhich statement about bipartite graphs is TRUE?", "options": {"A": "Can contain odd-length cycles", "B": "Every node has same degree", "C": "Must have exactly two edges", "D": "Cannot contain odd-length cycles"}, "answer": "D", "explanation": "Edges alternate between two sets \u2192 cycles must have even length. A graph is bipartite iff it has no odd cycles.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 75, "question": "Strongly Connected Graph\nDirected graph: A\u2192B, B\u2192C, C\u2192A. This graph is:", "options": {"A": "Weakly connected only", "B": "Neither strongly nor weakly", "C": "Strongly connected", "D": "Disconnected"}, "answer": "C", "explanation": "Every node reachable from every other via directed edges (A\u2192B\u2192C\u2192A cycle). Strongly connected \u2282 weakly connected.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 76, "question": "Power-Law Degree Distribution\nIn a power-law network:", "options": {"A": "Most nodes have very high degree", "B": "A few hubs have very high degree; most nodes have low degree", "C": "Degree follows a bell curve", "D": "All nodes have approximately equal degree"}, "answer": "B", "explanation": "$$P(k) \\propto k^{-\\gamma}$$ \u2014 long tail with rare hubs (e.g., Google in web graph).", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 77, "question": "Small-World Property\nThe \"small-world\" property means:", "options": {"A": "Network has very few nodes", "B": "Every node directly connected to every other", "C": "Average path length is surprisingly short despite large network size", "D": "Network has low diameter"}, "answer": "C", "explanation": "\"Six degrees of separation\" \u2014 even in million-node networks, average shortest path is small (often logarithmic).", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 78, "question": "Dead Ends in PageRank\nA \"dead end\" in PageRank is:", "options": {"A": "Page with no incoming links", "B": "Page linking only to itself", "C": "Page with equal in/out links", "D": "Page with no outgoing links \u2014 causes rank to \"leak\""}, "answer": "D", "explanation": "Random surfer reaches dead end with nowhere to go. Total PageRank decreases each iteration. Damping/teleportation fixes this.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 79, "question": "PageRank Advantage\nKey advantage of PageRank:", "options": {"A": "Query-dependent rankings", "B": "Requires real-time computation", "C": "Query-independent and precomputable", "D": "Assigns equal rank in strongly connected components"}, "answer": "C", "explanation": "Computed offline from link structure. Efficient at query time. But query-independence is also a criticism.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 80, "question": "PageRank Criticism\nValid criticism of PageRank:", "options": {"A": "Query-independent \u2014 doesn't consider relevance to specific queries", "B": "Can't handle cycles", "C": "Always assigns highest rank to most outgoing links", "D": "Too expensive to ever be practical"}, "answer": "A", "explanation": "PageRank gives one global score per page regardless of query. A high-PR page may be irrelevant to a specific search. Combined with TF-IDF in practice.", "tier": "Tier 3 \u2014 Moderate-High"}, {"num": 81, "question": "LightGCN \u2014 Final Embedding\nIn LightGCN with $$K = 3$$ layers and uniform $$\\alpha_k = 1/(K+1)$$, the final embedding is:", "options": {"A": "Only layer 3 output", "B": "Average of layers 1\u20133 only", "C": "Concatenation of all layers", "D": "$$e_u = \\frac{1}{4}(e_u^{(0)} + e_u^{(1)} + e_u^{(2)} + e_u^{(3)})$$"}, "answer": "D", "explanation": "LightGCN combines all layers 0 through K. With K=3 and uniform weights: $$e_u = \\frac{1}{4}\\sum_{k=0}^{3} e_u^{(k)}$$. Layer 0 preserves node identity.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 82, "question": "LightGCN \u2014 Prediction Method\nHow does LightGCN compute predicted scores?", "options": {"A": "Concatenation + MLP", "B": "Euclidean distance", "C": "Dot product of final embeddings: $$\\hat{y}_{ui} = e_u^T e_i$$", "D": "Cosine similarity"}, "answer": "C", "explanation": "Simple dot product \u2014 no additional NN layers after graph convolution. Simplicity is a key design choice.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 83, "question": "LightGCN vs. Standard GCN\nLightGCN differs from standard GCN by:", "options": {"A": "Using attention mechanisms", "B": "Removing non-linear activations and feature transformation matrices", "C": "Adding more layers", "D": "Using non-bipartite graphs"}, "answer": "B", "explanation": "LightGCN found these unnecessary for CF. Simpler design improves both performance and efficiency.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 84, "question": "BPR Loss \u2014 Positive vs. Negative Edges\nIn LightGCN's BPR loss, \"positive\" and \"negative\" edges are:", "options": {"A": "High-weight vs. low-weight edges", "B": "Similar vs. dissimilar nodes", "C": "Observed interactions vs. sampled non-interactions", "D": "Left-to-right vs. right-to-left edges"}, "answer": "C", "explanation": "Positive = user interacted with item. Negative = sampled pair with no interaction. BPR encourages $$\\hat{y}_{ui} > \\hat{y}_{uj}$$.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 85, "question": "LightGCN Binary Weakness\nMain weakness of LightGCN's binary interaction approach?", "options": {"A": "Can't handle large graphs", "B": "Treats all interactions equally (click = purchase), losing granularity", "C": "Requires explicit ratings", "D": "Can't learn from negative feedback"}, "answer": "B", "explanation": "Binary edges mean a casual view = a purchase. Can't distinguish interest levels.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 86, "question": "Shallow vs. Deep Embeddings\nKey difference between node2vec (shallow) and GNNs (deep)?", "options": {"A": "Shallow uses more parameters", "B": "Deep can't handle graphs", "C": "Shallow always outperforms deep", "D": "Shallow learns lookup tables; deep learns via neighborhood aggregation"}, "answer": "D", "explanation": "Shallow methods learn separate vectors per node. Deep methods (GNNs) aggregate neighbor information \u2014 enabling generalization to unseen nodes.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 87, "question": "Girvan-Newman Algorithm\nCorrect order of Girvan-Newman steps?", "options": {"A": "Compute edge betweenness \u2192 remove highest \u2192 recompute \u2192 repeat", "B": "Compute node centrality \u2192 remove lowest \u2192 form communities", "C": "Remove random edges \u2192 compute modularity", "D": "Assign random communities \u2192 optimize by swapping"}, "answer": "A", "explanation": "Top-down/divisive: iteratively remove bridge edges to reveal community structure.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 88, "question": "Louvain vs. Girvan-Newman\nMain difference?", "options": {"A": "Louvain is top-down; GN is bottom-up", "B": "Louvain uses edge betweenness", "C": "Louvain is bottom-up (agglomerative); GN is top-down (divisive)", "D": "Louvain requires number of communities as input"}, "answer": "C", "explanation": "GN removes edges (divisive). Louvain merges nodes to maximize modularity (agglomerative). Louvain runs in $$O(n \\log n)$$ \u2014 much faster.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 89, "question": "Louvain Advantage\nAdvantage of Louvain over Girvan-Newman?", "options": {"A": "Runs in approximately linear time, scales to large networks", "B": "Guarantees global optimum", "C": "Requires no objective function", "D": "Only works on directed graphs"}, "answer": "A", "explanation": "Louvain: $$O(n \\log n)$$. GN: $$O(m^2 n)$$. Louvain is practical for millions of nodes.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 90, "question": "Demographic Parity\nDemographic parity requires:", "options": {"A": "Equal accuracy across groups", "B": "Equal positive prediction rate across groups", "C": "Equal false positive rate across groups", "D": "Ignoring all demographic features"}, "answer": "B", "explanation": "$$P(\\hat{Y}=1 | G=a) = P(\\hat{Y}=1 | G=b)$$. Equal outcomes regardless of group.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 91, "question": "Counterfactual Fairness\nCounterfactual fairness requires:", "options": {"A": "Prediction unchanged if sensitive attribute were flipped", "B": "Equal accuracy across groups", "C": "Never using demographic info", "D": "Equal FP rate across groups"}, "answer": "A", "explanation": "\"Would this person get the same prediction if they belonged to a different group?\" $$\\hat{Y}(x) = \\hat{Y}(x')$$ where $$x'$$ differs only in protected attribute.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 92, "question": "Demographic Parity Limitation\nMajor limitation of demographic parity?", "options": {"A": "Can reduce accuracy by ignoring actual qualification differences", "B": "Requires sensitive attributes at test time", "C": "Only works for binary classification", "D": "Too difficult to compute"}, "answer": "A", "explanation": "If groups have different base rates, forcing equal prediction rates means over/under-predicting for some groups.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 93, "question": "Historical Bias\nHiring algorithm trained on 20 years of data ranks male candidates higher for engineering. This is:", "options": {"A": "Automation bias", "B": "Experimenter's bias", "C": "Reporting bias", "D": "Historical bias"}, "answer": "D", "explanation": "Training data reflects past societal biases. The data accurately records what happened, but what happened was biased.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 94, "question": "Reporting Bias\nMovie reviews mostly contain extreme ratings (1-star and 5-star). This is:", "options": {"A": "Reporting bias", "B": "Selection bias", "C": "Historical bias", "D": "Confirmation bias"}, "answer": "A", "explanation": "People with moderate opinions don't write reviews. Data reflects what's reported, not reality.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 95, "question": "Automation Bias\nDoctor accepts AI diagnosis without further examination despite contradicting symptoms. This is:", "options": {"A": "Historical bias", "B": "Implicit bias", "C": "Confirmation bias", "D": "Automation bias"}, "answer": "D", "explanation": "Over-relying on automated systems without critical evaluation. Dangerous in high-stakes domains.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 96, "question": "FM vs. MF\nHow do Factorization Machines differ from standard MF?", "options": {"A": "FM only handles explicit ratings", "B": "FM is restricted to user-item pairs", "C": "FM models pairwise interactions among arbitrary features, not just user-item", "D": "FM doesn't use latent vectors"}, "answer": "C", "explanation": "MF only models user\u00d7item. FM allows any feature (time, context, demographics) to participate in pairwise interactions.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 97, "question": "FM Complexity\nFM prediction complexity after reformulation?", "options": {"A": "$$O(n^2)$$", "B": "$$O(kn^2)$$", "C": "$$O(n)$$", "D": "$$O(kn)$$"}, "answer": "D", "explanation": "Na\u00efve $$O(kn^2)$$ reduced to $$O(kn)$$ via algebraic trick: $$\\sum_{i<j}\\langle v_i,v_j\\rangle x_ix_j = \\frac{1}{2}\\sum_l[(\\sum_i v_{il}x_i)^2 - \\sum_i v_{il}^2x_i^2]$$.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 98, "question": "FM Feature Encoding\nHow are user/item identities encoded in FM?", "options": {"A": "Continuous values [0,1]", "B": "One-hot encoded binary vectors concatenated", "C": "Raw integer IDs", "D": "Not included in feature vector"}, "answer": "B", "explanation": "User $$u_3$$, item $$i_5$$: $$\\mathbf{x} = (0,0,1,0,...|0,0,0,0,1,0,...)$$. Additional features appended \u2014 FM's key advantage over MF.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 99, "question": "Contextual Bandits \u2014 Netflix\nHow does Netflix use contextual bandits for artwork?", "options": {"A": "Random artwork assignment", "B": "Same artwork for everyone", "C": "Selects artwork based on user's viewing history and preferences", "D": "Users manually choose artwork"}, "answer": "C", "explanation": "Each artwork variant = an \"arm.\" Context = user's watch history, genre preferences. Romance fan sees romantic scene; action fan sees action scene \u2014 same title.", "tier": "Tier 4 \u2014 Moderate"}, {"num": 100, "question": "Log Loss and Fairness\nWhy can optimizing log loss alone be problematic for fairness?", "options": {"A": "Log loss is not differentiable", "B": "Can't handle multi-class", "C": "Too expensive for large datasets", "D": "Optimizes overall performance, masking poor minority-group performance"}, "answer": "D", "explanation": "Log loss averages across all examples. Majority group's low loss drowns out minority group's high loss. Model performs well \"on average\" but poorly for underrepresented groups.", "tier": "Tier 4 \u2014 Moderate"}]
+};
+
+// ===== STATE =====
+let state = {
+  course: null,
+  questions: [],
+  currentIndex: 0,
+  score: 0,
+  answered: 0,
+  answers: [], // {qIndex, selected, correct, isCorrect, timeSpent}
+  theme: localStorage.getItem('quiz-theme') || 'light',
+  totalStartTime: null,
+  questionStartTime: null,
+  timerInterval: null,
+  totalElapsed: 0
+};
+
+// ===== THEME =====
+function initTheme() {
+  if (state.theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.querySelector('.theme-toggle').textContent = '☀️';
+  }
+}
+function toggleTheme() {
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  localStorage.setItem('quiz-theme', state.theme);
+  if (state.theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.querySelector('.theme-toggle').textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.querySelector('.theme-toggle').textContent = '🌙';
+  }
+}
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-course') {
+    document.getElementById('header-title').textContent = '📝 CMPE Exam Prep';
+    document.getElementById('timer-display').style.display = 'none';
+    if (state.timerInterval) clearInterval(state.timerInterval);
+  }
+}
+
+// ===== TIMER =====
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+function startTimer() {
+  state.totalStartTime = Date.now();
+  state.questionStartTime = Date.now();
+  document.getElementById('timer-display').style.display = 'inline-block';
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    const totalSec = Math.floor((Date.now() - state.totalStartTime) / 1000);
+    const qSec = Math.floor((Date.now() - state.questionStartTime) / 1000);
+    document.getElementById('total-timer').textContent = formatTime(totalSec);
+    document.getElementById('q-timer').textContent = 'Q: ' + formatTime(qSec);
+  }, 1000);
+}
+function stopTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.totalElapsed = Math.floor((Date.now() - state.totalStartTime) / 1000);
+  document.getElementById('timer-display').style.display = 'none';
+}
+function resetQuestionTimer() {
+  state.questionStartTime = Date.now();
+}
+function getQuestionTime() {
+  return Math.floor((Date.now() - state.questionStartTime) / 1000);
+}
+
+// ===== COURSE SELECTION =====
+const COURSE_TITLES = {
+  cmpe260: 'CMPE 260 — Reinforcement Learning',
+  cmpe256: 'CMPE 256 — Recommender Systems'
+};
+function selectCourse(course) {
+  state.course = course;
+  document.getElementById('mode-title').textContent = COURSE_TITLES[course];
+  document.getElementById('mode-subtitle').textContent = '100 questions available';
+  document.getElementById('header-title').textContent = COURSE_TITLES[course];
+  showScreen('screen-mode');
+}
+
+// ===== SHUFFLE =====
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===== START QUIZ =====
+function startQuiz(count) {
+  const allQ = QUESTIONS[state.course];
+  const shuffled = shuffle(allQ);
+  state.questions = shuffled.slice(0, Math.min(count, shuffled.length));
+  state.currentIndex = 0;
+  state.score = 0;
+  state.answered = 0;
+  state.answers = [];
+  const modeLabel = count >= 100 ? 'All 100' : `Quick ${count}`;
+  document.getElementById('header-title').textContent = `${COURSE_TITLES[state.course]} · ${modeLabel}`;
+  showScreen('screen-quiz');
+  startTimer();
+  renderQuestion();
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion() {
+  const q = state.questions[state.currentIndex];
+  const total = state.questions.length;
+  const idx = state.currentIndex;
+
+  // Progress
+  document.getElementById('progress-bar').style.width = ((idx / total) * 100) + '%';
+  document.getElementById('progress-label').textContent = `Question ${idx + 1} of ${total}`;
+  document.getElementById('score-label').textContent = `Score: ${state.score}/${state.answered}`;
+
+  // Question
+  document.getElementById('q-tier').textContent = q.tier;
+  document.getElementById('q-number').textContent = `Q${q.num}`;
+  document.getElementById('q-text').innerHTML = q.question.replace(/\n/g, '<br>');
+
+  // Options
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  ['A', 'B', 'C', 'D'].forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<div class="option-content"><span class="option-letter">${letter}</span><span class="option-text">${q.options[letter]}</span></div>`;
+    btn.onclick = () => selectAnswer(letter);
+    btn.dataset.letter = letter;
+    container.appendChild(btn);
+  });
+
+  // Reset feedback
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'none';
+  fb.className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+
+  // Re-render MathJax
+  typesetMath();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function typesetMath() {
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise().catch(err => console.log('MathJax error:', err));
+  }
+}
+
+// ===== SELECT ANSWER =====
+function selectAnswer(selected) {
+  const q = state.questions[state.currentIndex];
+  const correct = q.answer;
+  const isCorrect = selected === correct;
+
+  state.answered++;
+  if (isCorrect) state.score++;
+
+  const timeSpent = getQuestionTime();
+  state.answers.push({
+    qIndex: state.currentIndex,
+    question: q,
+    selected,
+    correct,
+    isCorrect,
+    timeSpent
+  });
+
+  // Disable all options
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(btn => {
+    btn.classList.add('disabled');
+    btn.onclick = null;
+    const letter = btn.dataset.letter;
+    if (letter === correct) btn.classList.add('correct');
+    if (letter === selected && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Show feedback
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  if (isCorrect) {
+    fb.className = 'feedback correct-fb';
+    document.getElementById('fb-title').textContent = '✅ Correct!';
+  } else {
+    fb.className = 'feedback wrong-fb';
+    document.getElementById('fb-title').textContent = `❌ Wrong — Correct answer is ${correct}`;
+  }
+  document.getElementById('fb-explanation').innerHTML = q.explanation.replace(/\n/g, '<br>');
+
+  // Update score display
+  document.getElementById('score-label').textContent = `Score: ${state.score}/${state.answered}`;
+
+  // Show next button
+  const nextBtn = document.getElementById('next-btn');
+  if (state.currentIndex < state.questions.length - 1) {
+    nextBtn.textContent = 'Next Question →';
+  } else {
+    nextBtn.textContent = 'View Results →';
+  }
+  nextBtn.style.display = 'block';
+
+  typesetMath();
+}
+
+// ===== NEXT QUESTION =====
+function nextQuestion() {
+  state.currentIndex++;
+  if (state.currentIndex >= state.questions.length) {
+    showSummary();
+  } else {
+    resetQuestionTimer();
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ===== SUMMARY =====
+function showSummary() {
+  stopTimer();
+  showScreen('screen-summary');
+  const total = state.questions.length;
+  const pct = Math.round((state.score / total) * 100);
+
+  document.getElementById('final-score').textContent = `${state.score} / ${total}`;
+  document.getElementById('final-pct').textContent = `${pct}% correct · ${formatTime(state.totalElapsed)} total`;
+
+  const bar = document.getElementById('score-bar');
+  bar.style.width = '0%';
+  bar.style.background = pct >= 70 ? 'var(--correct)' : pct >= 50 ? '#ff9f0a' : 'var(--wrong)';
+  setTimeout(() => { bar.style.width = pct + '%'; }, 100);
+
+  document.getElementById('header-title').textContent = `${COURSE_TITLES[state.course]} · Results`;
+  renderReviewList('all');
+}
+
+function renderReviewList(filter) {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+
+  state.answers.forEach((a, i) => {
+    if (filter === 'wrong' && a.isCorrect) return;
+    if (filter === 'correct' && !a.isCorrect) return;
+
+    const item = document.createElement('div');
+    item.className = `review-item ${a.isCorrect ? 'review-correct' : 'review-wrong'}`;
+
+    let detail = '';
+    if (!a.isCorrect) {
+      detail = `<div class="review-detail">
+        Your answer: <strong>${a.selected}) ${a.question.options[a.selected]}</strong><br>
+        Correct: <strong>${a.correct}) ${a.question.options[a.correct]}</strong>
+        <span style="color:var(--text2);font-size:0.8rem;margin-left:8px">⏱ ${formatTime(a.timeSpent)}</span><br>
+        <em>${a.question.explanation}</em>
+      </div>`;
+    } else {
+      detail = `<div class="review-detail">✅ Answered: ${a.correct} <span style="color:var(--text2);font-size:0.8rem;margin-left:8px">⏱ ${formatTime(a.timeSpent)}</span></div>`;
+    }
+
+    item.innerHTML = `
+      <div class="review-q">${a.isCorrect ? '✅' : '❌'} Q${a.question.num}. ${a.question.question.substring(0, 120)}${a.question.question.length > 120 ? '...' : ''}</div>
+      ${detail}
+    `;
+    list.appendChild(item);
+  });
+
+  typesetMath();
+}
+
+function filterReview(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReviewList(filter);
+}
+
+// ===== RESTART =====
+function restartQuiz() {
+  startQuiz(state.questions.length);
+}
+
+// ===== INIT =====
+initTheme();
+</script>
+</body>
+</html>
